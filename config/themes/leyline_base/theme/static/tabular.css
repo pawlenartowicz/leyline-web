@@ -1,0 +1,121 @@
+/* tabular.css — styles for RenderTabular output (CSV/TSV/PSV viewer).
+   Engine ships class names only; this file ships the visuals + behavior.
+   Uses leyline_base palette tokens so light/dark switch via [data-theme="dark"]
+   works automatically without a separate prefers-color-scheme block.
+*/
+
+.ley-tabular-wrap {
+  position: relative;
+  /* Inline JS publishes the jump-bar's measured height here when the bar
+     is visible (0px when hidden), so the sticky <thead> can offset itself
+     below the bar instead of overlapping it at viewport top. */
+  --ley-jump-bar-h: 0px;
+}
+
+.ley-tabular-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px 6px;
+  font-size: 11px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  background: var(--color-code-bg);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+.ley-tabular-jump a {
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  color: inherit;
+  text-decoration: none;
+}
+.ley-tabular-jump a:hover {
+  background: var(--color-code-bg);
+  border-color: var(--color-text-muted);
+}
+.ley-tabular-jump[hidden] {
+  display: none;
+}
+
+.ley-tabular-scroll {
+  overflow-x: auto;
+}
+
+.ley-tabular {
+  border-collapse: collapse;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.ley-tabular th,
+.ley-tabular td {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+  white-space: pre-wrap;       /* preserve embedded newlines, no caps */
+  min-width: 4ch;
+  text-align: right;           /* data cells: right-aligned by default */
+}
+
+.ley-tabular thead th {
+  position: sticky;
+  /* Sit below the sticky jump-bar when visible (var set by inline JS),
+     otherwise pin to viewport top. .ley-tabular-scroll only sets
+     overflow-x, so vertical scrolling belongs to the page and both
+     sticky elements share the viewport as their containing block. */
+  top: var(--ley-jump-bar-h, 0px);
+  z-index: 2;
+  background: var(--color-code-bg);
+  color: var(--color-text);
+  font-weight: 600;
+  text-align: left;            /* headers: always left-aligned */
+}
+
+.ley-tabular tbody th {        /* first column = <th scope="row"> */
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--color-code-bg);
+  color: var(--color-text);
+  text-align: left;
+  font-weight: normal;
+}
+
+.ley-tabular thead th:first-child {
+  left: 0;
+  z-index: 4;                  /* corner cell sits above both axes */
+}
+
+/* Inline `![[data.csv]]` embeds inside a markdown note. The transformer
+   emits the same <table class="ley-tabular"> markup as the standalone
+   page but skips the jump-bar and the inline overflow-detect script,
+   and tags the wrap with the --embed modifier. Constrain the scroll
+   box so a 10k-row CSV doesn't push everything else off-screen. */
+.ley-tabular-wrap--embed .ley-tabular-scroll {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* Fallback chip rendered when a CSV embed can't be parsed or exceeds
+   the size cap: a link to the standalone viewer URL, styled to read as
+   a "data file" affordance rather than a regular inline link. */
+.ley-tabular-embed-fallback {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  background: var(--color-code-bg);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 13px;
+  text-decoration: none;
+  color: inherit;
+}
+.ley-tabular-embed-fallback:hover {
+  border-color: var(--color-text-muted);
+}

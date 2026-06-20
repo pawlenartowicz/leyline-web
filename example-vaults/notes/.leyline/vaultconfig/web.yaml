@@ -1,0 +1,36 @@
+parent_theme: notes
+# guest_role controls anonymous read access (modes: none / view / require-key).
+guest_role: view
+auth:
+  login_button: none
+
+# No header.site_title: the header brand stays the "Leyline" logotype — same
+# across all three example vaults. vault_name titles only the sidebar root,
+# browser tab, and footer.
+vault_id: notes
+vault_name: "Quick start"
+vault_tagline: "use template notes"
+vault_home: index.md
+
+# left_sidebar: the notes theme defaults to the auto [navigation] tree, which
+# sorts alphabetically by title and so ignores the 1-/2-/3- section prefixes.
+# Override with a curated .nav file (sidebar.nav) to pin the reading order.
+left_sidebar: [sidebar.nav]
+
+# right_sidebar: references renders footnotes as Tufte sidenotes in the right
+# gutter. Alternatives: a widget stack (e.g. [table_of_content]), `body`
+# (article absorbs the column), or `none`.
+right_sidebar: references
+
+# The `notes` theme ships with `edit_switch.enabled: false` so the
+# switch is discoverable but off by default. To expose it, flip
+# `defaults.edit_switch.enabled` to true in config/themes/notes/web.yaml
+# (or in your own child theme that sets `parent_theme: notes`).
+
+header:
+  navigation: nav.nav
+  # brand_link: /      # optional; defaults to "/" when unset
+
+footer:
+  license: "CC BY-SA 4.0"
+  copyright: "© 2026 Pawel Lenartowicz"

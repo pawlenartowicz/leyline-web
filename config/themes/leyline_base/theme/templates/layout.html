@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <script src="{{.Vault.BasePath}}_theme/leyline_base/mode-persist.js"></script>
+  <script src="{{.Vault.BasePath}}_theme/leyline_base/theme-init.js"></script>
+  <title>{{.Title}} — {{if .Theme.Defaults.VaultName}}{{.Theme.Defaults.VaultName}}{{else}}Leyline{{end}}</title>
+  {{- if .CanonicalURL}}
+  <link rel="canonical" href="{{.CanonicalURL}}">
+  <meta property="og:url" content="{{.CanonicalURL}}">
+  <meta property="og:type" content="{{.OGType}}">
+  <meta property="og:title" content="{{.Title}}">
+  {{- with .Description}}
+  <meta property="og:description" content="{{.}}">
+  {{- end}}
+  <meta name="twitter:card" content="summary">
+  {{- end}}
+  <link rel="icon" type="image/svg+xml" href="{{.Vault.BasePath}}_theme/leyline_base/favicon.svg">
+  <link rel="icon" type="image/svg+xml" href="{{.Vault.BasePath}}_theme/leyline_base/favicon-reverse.svg" media="(prefers-color-scheme: dark)">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{.Vault.BasePath}}_theme/leyline_base/favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{.Vault.BasePath}}_theme/leyline_base/favicon-180.png">
+  {{- range .Theme.CSSChain }}
+  <link rel="stylesheet" href="{{$.Vault.BasePath}}_theme/{{.}}/theme.css">
+  {{- end }}
+  {{- range .Theme.ChromaLightCSSChain }}
+  <link rel="stylesheet" href="{{$.Vault.BasePath}}_theme/{{.}}/chroma-light.css">
+  {{- end }}
+  {{- range .Theme.ChromaDarkCSSChain }}
+  <link rel="stylesheet" href="{{$.Vault.BasePath}}_theme/{{.}}/chroma-dark.css">
+  {{- end }}
+  {{- range .Theme.TabularCSSChain }}
+  <link rel="stylesheet" href="{{$.Vault.BasePath}}_theme/{{.}}/tabular.css">
+  {{- end }}
+</head>
+<body data-left="{{.LeftSidebar.LayoutMode}}" data-right="{{.RightSidebar.LayoutMode}}" data-toc-follow="{{.Theme.Defaults.TocFollow}}"{{with .EditSwitch.Mode}} data-mode="{{.}}"{{end}}{{if eq .RightSidebar.LayoutMode `references`}} class="refs-side"{{end}}>
+  {{template "header.html" .}}
+  <div class="sidebar-backdrop" aria-hidden="true"></div>
+  <main>
+    {{if .LeftSidebar.HasWidgets}}{{template "sidebar-rail" (dict "Side" "left" "Rail" .LeftSidebar "Page" .)}}{{end}}
+    <article>
+      {{block "main" .}}{{end}}
+    </article>
+    {{if .RightSidebar.HasWidgets}}{{template "sidebar-rail" (dict "Side" "right" "Rail" .RightSidebar "Page" .)}}{{end}}
+  </main>
+  {{template "footer.html" .}}
+  {{template "admin_panel.html" .}}
+  {{- range .Theme.JSChain }}
+  <script src="{{$.Vault.BasePath}}_theme/{{.}}/theme.js"></script>
+  {{- end }}
+</body>
+</html>

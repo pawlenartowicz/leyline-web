@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Leyline · favicon · "Pair" variant
+     24×24 viewBox · stroke 1.5 · currentColor
+     Two endpoint nodes aligning across the field — the strongest
+     sync metaphor in the mark family. Used as the browser tab icon. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" role="img" aria-label="Leyline">
+  <title>Leyline</title>
+  <g stroke="currentColor" stroke-width="1.5">
+    <line x1="4" y1="8" x2="20" y2="8"/>
+    <line x1="4" y1="12" x2="20" y2="12"/>
+    <line x1="4" y1="16" x2="20" y2="16"/>
+  </g>
+  <circle cx="8.5" cy="8" r="1.6" fill="currentColor"/>
+  <circle cx="16" cy="16" r="1.6" fill="currentColor"/>
+</svg>

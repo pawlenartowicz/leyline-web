@@ -1,0 +1,22 @@
+<footer class="site-footer">
+  <div aria-hidden="true"></div>
+  <div class="footer-center">
+    {{- $license := or .Theme.Defaults.Footer.License .Theme.Defaults.License }}
+    {{- $copy := or .Theme.Defaults.Footer.Copyright .Theme.Defaults.Copyright }}
+    {{- if or $license $copy }}
+    <small class="footer-attr">
+      {{- with .Theme.Defaults.VaultName }}{{ . }}{{ end -}}
+      {{- if and .Theme.Defaults.VaultName $copy }} · {{ end -}}
+      {{- with $copy }}{{ . }}{{ end -}}
+      {{- if and (or .Theme.Defaults.VaultName $copy) $license }} · {{ end -}}
+      {{- with $license }}{{ . }}{{ end -}}
+    </small>
+    {{- end }}
+    <small class="footer-engine">
+      Built with leyline · <a href="https://github.com/pawlenartowicz/leyline">Source</a>
+    </small>
+  </div>
+  <div class="footer-end">
+    {{- if eq .Theme.Defaults.Auth.LoginButton "footer" }}{{template "auth_panel.html" .}}{{- end }}
+  </div>
+</footer>

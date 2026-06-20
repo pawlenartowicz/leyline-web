@@ -1,0 +1,29 @@
+{{define "main"}}
+  <section class="not-found">
+    <p class="not-found__numeral" aria-hidden="true">404</p>
+    <div class="not-found__ornament" aria-hidden="true"></div>
+    {{if .Version.RequestedTag}}
+      <p class="not-found__message">
+        Nothing at this path under version <em>{{.Version.RequestedTag}}</em>{{if .Theme.Defaults.VaultName}} of <em>{{.Theme.Defaults.VaultName}}</em>{{end}}.
+      </p>
+      {{if .Version.RequestedPath}}
+        <p class="not-found__path">{{.Version.RequestedPath}}</p>
+      {{end}}
+      {{if .Version.Switcher}}
+        <div class="not-found__switcher">
+          {{template "version_switcher.html" .}}
+        </div>
+      {{end}}
+    {{else}}
+      <p class="not-found__message">
+        The page is not in {{if .Theme.Defaults.VaultName}}<em>{{.Theme.Defaults.VaultName}}</em>{{else}}this vault{{end}}.
+      </p>
+      {{if .Version.RequestedPath}}
+        <p class="not-found__path">{{.Version.RequestedPath}}</p>
+      {{end}}
+    {{end}}
+    <p class="not-found__return">
+      <a href="{{.Vault.Prefix}}">Return to {{if .Theme.Defaults.VaultName}}{{.Theme.Defaults.VaultName}}{{else}}vault root{{end}}</a>
+    </p>
+  </section>
+{{end}}

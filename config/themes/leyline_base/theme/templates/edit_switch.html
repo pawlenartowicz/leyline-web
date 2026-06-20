@@ -1,0 +1,21 @@
+{{- /* Phase 2c: edit-mode switch (edit / preview / split).
+       Visibility is decided server-side; the partial renders nothing
+       when EditSwitch.Visible is false. */ -}}
+{{- with .EditSwitch -}}
+{{- if .Visible -}}
+<nav class="edit-mode-switch" role="tablist" aria-label="View mode">
+  <a class="edit-mode-switch__option edit-mode-switch__option--edit{{if eq .Mode "edit"}} is-active{{end}}"
+     role="tab"
+     {{if eq .Mode "edit"}}aria-current="true" aria-selected="true"{{end}}
+     href="{{.EditURL}}">Edit</a>
+  <a class="edit-mode-switch__option edit-mode-switch__option--preview{{if eq .Mode "preview"}} is-active{{end}}"
+     role="tab"
+     {{if eq .Mode "preview"}}aria-current="true" aria-selected="true"{{end}}
+     href="{{.PreviewURL}}">Preview</a>
+  <a class="edit-mode-switch__option edit-mode-switch__option--split{{if eq .Mode "split"}} is-active{{end}}"
+     role="tab"
+     {{if eq .Mode "split"}}aria-current="true" aria-selected="true"{{end}}
+     href="{{.SplitURL}}">Split</a>
+</nav>
+{{- end -}}
+{{- end -}}

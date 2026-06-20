@@ -1,0 +1,15 @@
+# Hand-curated header navigation shared by the three bundled example vaults.
+# Format: "Label" : "target"     (children prefixed with `-`, depth 1)
+#
+# All non-external links are cross-vault (`@vaultID/...`) so this exact
+# file can be dropped into static-page / notes / documentation unchanged.
+
+"Quick start"    : "@notes/"
+"Documentation"  : "@documentation/"
+"Repositories"
+   - "leyline-server"        : "https://github.com/pawlenartowicz/leyline"
+   - "leyline-obsidian"      : "https://github.com/pawlenartowicz/leyline-obsidian"
+   - "leyline-protocol"      : "https://github.com/pawlenartowicz/leyline"
+   - "leyline-cli"           : "https://github.com/pawlenartowicz/leyline"
+   - "leyline-web-source"    : "https://github.com/pawlenartowicz/leyline"
+   - "leyline-web"           : "https://github.com/pawlenartowicz/leyline-web"

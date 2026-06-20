@@ -1,0 +1,64 @@
+<header class="site-header">
+  <button id="sidebar-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar">☰</button>
+  <a class="brand" href="{{or .Theme.Defaults.Header.BrandLink `/`}}">
+    <img class="brand-logo brand-logo-light" src="{{.Vault.BasePath}}_theme/leyline_base/favicon.svg" alt="" aria-hidden="true">
+    <img class="brand-logo brand-logo-dark" src="{{.Vault.BasePath}}_theme/leyline_base/favicon-reverse.svg" alt="" aria-hidden="true">
+    <span class="brand-text">
+      {{- if .Theme.Defaults.Header.SiteTitle -}}
+        <span>{{.Theme.Defaults.Header.SiteTitle}}</span>
+      {{- else -}}
+        <span class="brand-name brand-name--default">Leyline</span>
+      {{- end -}}
+      {{- with .Theme.Defaults.VaultTagline }}<span class="brand-tagline">{{.}}</span>{{- end }}
+    </span>
+  </a>
+  {{- if .HeaderNav }}
+  <nav class="site-nav" aria-label="Site navigation">
+    {{template "site-nav-list" (dict "Nodes" .HeaderNav "Cur" .URL)}}
+  </nav>
+  {{- end }}
+  <div id="theme-control" data-mode="system">
+    <button id="theme-toggle" type="button" aria-label="Theme: system (click to cycle)" title="Theme: system">
+      <svg class="ti ti-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="ti ti-system" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/></svg>
+      <svg class="ti ti-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    </button>
+    <div id="theme-segment" role="radiogroup" aria-label="Color theme">
+      <button type="button" role="radio" data-theme-set="dark" aria-checked="false" aria-label="Dark" title="Dark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button type="button" role="radio" data-theme-set="system" aria-checked="true" aria-label="Follow system" title="Follow system">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/></svg>
+      </button>
+      <button type="button" role="radio" data-theme-set="light" aria-checked="false" aria-label="Light" title="Light">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+    </div>
+  </div>
+  {{- if eq .Theme.Defaults.Auth.LoginButton "header" }}{{template "auth_panel.html" .}}{{- end }}
+</header>
+
+{{define "site-nav-list"}}
+  {{- $cur := .Cur -}}
+  <ul class="site-nav-list">
+    {{- range .Nodes }}
+      {{- $n := . -}}
+      <li class="site-nav-item{{if $n.IsActive $cur}} is-active{{end}}{{if $n.Children}} has-children{{end}}{{if $n.ParentOnly}} is-parent-only{{end}}">
+        {{- if $n.URL -}}
+          <a href="{{$n.URL}}">{{$n.Title}}</a>
+        {{- else -}}
+          <span class="site-nav-label">{{$n.Title}}</span>
+        {{- end -}}
+        {{- if $n.Children }}
+          <ul class="site-nav-children">
+            {{- range $n.Children }}
+              <li class="site-nav-child{{if .IsActive $cur}} is-active{{end}}">
+                {{- if .URL -}}<a href="{{.URL}}">{{.Title}}</a>{{- else -}}<span>{{.Title}}</span>{{- end -}}
+              </li>
+            {{- end }}
+          </ul>
+        {{- end }}
+      </li>
+    {{- end }}
+  </ul>
+{{end}}

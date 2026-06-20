@@ -1,0 +1,512 @@
+{{/*
+  Login page — leyline_base.
+
+  Re-defines layout.html so it does not depend on the regular chrome
+  partials (header/sidebar/footer/auth_panel/admin_panel), which all read
+  .Vault.Name / .Nav / .Theme.Defaults — none of which are populated on
+  the login page.
+
+  The login route is server-global. To follow the active theme, the
+  handler populates `.Theme.CSSChain`/`JSChain` and `.Vault.BasePath`
+  (the prefix of one mounted vault), so the same `/_theme/<layer>/…`
+  URLs the regular layout uses also resolve here.
+
+  When the host prefix is empty (no vault mounted) the page degrades
+  gracefully: the chain `<link>` tags emit nothing, and the inline
+  styles below carry the layout on their own using their `var(--…, …)`
+  fallbacks.
+*/}}
+
+{{define "layout.html"}}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  {{/* theme.js carries the pre-paint data-theme setter (reads
+       localStorage["leyline-web:theme"] and writes <html data-theme>),
+       so it MUST load in <head> before paint to avoid FOUC. */}}
+  {{- range .Theme.JSChain }}
+  <script src="{{$.Vault.BasePath}}_theme/{{.}}/theme.js"></script>
+  {{- end }}
+  <title>{{.Title}} &middot; Leyline</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%3E%3Cg%20stroke%3D%22%237A4636%22%20stroke-width%3D%221.5%22%3E%3Cline%20x1%3D%224%22%20y1%3D%228%22%20x2%3D%2220%22%20y2%3D%228%22%2F%3E%3Cline%20x1%3D%224%22%20y1%3D%2212%22%20x2%3D%2220%22%20y2%3D%2212%22%2F%3E%3Cline%20x1%3D%224%22%20y1%3D%2216%22%20x2%3D%2220%22%20y2%3D%2216%22%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%228.5%22%20cy%3D%228%22%20r%3D%221.6%22%20fill%3D%22%237A4636%22%2F%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%221.6%22%20fill%3D%22%237A4636%22%2F%3E%3C%2Fsvg%3E">
+  {{- range .Theme.CSSChain }}
+  <link rel="stylesheet" href="{{$.Vault.BasePath}}_theme/{{.}}/theme.css">
+  {{- end }}
+  <style>
+    /* Login-page-only selectors. Palette / fonts / body styles come from
+       the cascaded theme.css; every custom property has a sane literal
+       fallback so the page still renders if the cascade is missing. */
+
+    main.signin {
+      position: relative;
+      z-index: 1;
+      max-width: 30rem;
+      margin: 0 auto;
+      padding: clamp(3rem, 9vh, 6rem) 1.75rem clamp(2.5rem, 6vh, 4rem);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-family: var(--font-ui, var(--font-body, system-ui, -apple-system, "Segoe UI", sans-serif));
+      color: var(--color-text, #1B1622);
+      animation: signin-rise 0.55s cubic-bezier(.2,.7,.2,1) both;
+    }
+
+    /* Floating theme control — same markup theme.js binds to in the
+       regular header, repositioned to the top-right of the viewport so
+       it doesn't impose on the centered masthead composition. */
+    .signin-themebar {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 2;
+    }
+    @keyframes signin-rise {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      main.signin { animation: none; }
+    }
+
+    /* Cream-paper grain. Sits over the cascaded body bg, well below the
+       page content. Inline SVG so no extra request. */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22220%22%20height%3D%22220%22%3E%3Cfilter%20id%3D%22n%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.9%22%20numOctaves%3D%222%22%20stitchTiles%3D%22stitch%22%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url%28%23n%29%22%2F%3E%3C%2Fsvg%3E");
+    }
+
+    /* ── Masthead ─────────────────────────────────────────────────── */
+
+    .masthead {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.85rem;
+      text-align: center;
+      color: var(--color-link, #7A4636);
+    }
+    .mark { width: 2.6rem; height: 2.6rem; display: block; }
+    .mark .ley { stroke: currentColor; stroke-width: 1.5; }
+    .mark .node { fill: currentColor; }
+
+    .wordmark {
+      font-family: var(--font-special, "Iowan Old Style", "Palatino Linotype", Georgia, serif);
+      font-style: italic;
+      font-weight: 500;
+      font-size: clamp(2.4rem, 5vw, 3rem);
+      line-height: 1;
+      letter-spacing: 0.005em;
+      color: var(--color-text, #1B1622);
+      margin: 0;
+    }
+
+    .caption {
+      font-family: var(--font-ui, var(--font-body, system-ui, sans-serif));
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--color-text-muted, #5C5462);
+      margin: 0;
+    }
+
+    /* ── Crossing-tick rule (mirrors the section-break <hr> in
+       theme.css — change together) ───────────────────────────────── */
+
+    .rule {
+      position: relative;
+      height: 1em;
+      margin: 2.25rem 0;
+    }
+    .rule::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 1px;
+      background: linear-gradient(to right,
+        transparent,
+        var(--color-border, #D2CABA) 25%,
+        var(--color-border, #D2CABA) 75%,
+        transparent);
+    }
+    .rule::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 1px;
+      height: 0.9em;
+      transform: translate(-50%, -50%);
+      background: var(--color-link, #7A4636);
+      opacity: 0.7;
+    }
+    .rule--tight { margin: 1.5rem 0; }
+
+    /* ── Existing sessions block ──────────────────────────────────── */
+
+    .sessions__heading {
+      font-family: var(--font-ui, var(--font-body, system-ui, sans-serif));
+      font-size: 0.65rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--color-text-muted, #5C5462);
+      margin: 0 0 0.75rem;
+    }
+
+    .sessions {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .session {
+      display: flex;
+      align-items: baseline;
+      gap: 0.65rem;
+      padding: 0.55rem 0.75rem;
+      background: var(--color-code-bg, #E9E2CE);
+      border: 1px solid var(--color-border, #D2CABA);
+      border-radius: 6px;
+    }
+
+    .session__vault {
+      font-family: var(--font-mono, ui-monospace, Menlo, Consolas, monospace);
+      font-size: 0.85rem;
+      color: var(--color-text, #1B1622);
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .session__role {
+      font-family: var(--font-ui, var(--font-body, system-ui, sans-serif));
+      font-size: 0.78rem;
+      color: var(--color-text-muted, #5C5462);
+      font-variant: small-caps;
+      letter-spacing: 0.04em;
+    }
+
+    .session__release,
+    .sessions__release-all {
+      appearance: none;
+      background: transparent;
+      border: 0;
+      padding: 0;
+      font: inherit;
+      font-family: var(--font-ui, var(--font-body, system-ui, sans-serif));
+      font-size: 0.78rem;
+      color: var(--color-text-muted, #5C5462);
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 0.2em;
+      text-decoration-color: var(--color-border, #D2CABA);
+    }
+    .session__release:hover,
+    .sessions__release-all:hover {
+      color: var(--color-link, #7A4636);
+      text-decoration-color: currentColor;
+    }
+
+    .sessions__release-all {
+      margin-top: 0.75rem;
+      font-style: italic;
+      font-size: 0.8rem;
+    }
+
+    .sessions__release-form { display: inline; margin: 0; }
+
+    /* ── Form ─────────────────────────────────────────────────────── */
+
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      margin: 0;
+    }
+
+    .form__label {
+      font-family: var(--font-ui, var(--font-body, system-ui, sans-serif));
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--color-text-muted, #5C5462);
+    }
+
+    .form__field {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .form__input {
+      flex: 1;
+      width: 100%;
+      appearance: none;
+      background: transparent;
+      border: 0;
+      border-bottom: 1px solid var(--color-border, #D2CABA);
+      border-radius: 0;
+      color: var(--color-text, #1B1622);
+      font-family: var(--font-mono, ui-monospace, Menlo, Consolas, monospace);
+      font-size: 1.05rem;
+      letter-spacing: 0.04em;
+      padding: 0.55rem 0;
+      transition: border-color 160ms ease;
+      caret-color: var(--color-link, #7A4636);
+    }
+    .form__input::placeholder {
+      color: var(--color-text-muted, #5C5462);
+      opacity: 0.55;
+    }
+    .form__input:focus {
+      outline: none;
+      border-bottom-color: var(--color-link, #7A4636);
+    }
+    .form__input:not(:placeholder-shown):invalid {
+      border-bottom-color: var(--color-callout-warn-border, #A8782A);
+    }
+
+    .form__hint {
+      font-family: var(--font-ui, var(--font-body, system-ui, sans-serif));
+      font-size: 0.8rem;
+      font-style: italic;
+      color: var(--color-text-muted, #5C5462);
+      margin: 0;
+    }
+
+    /* Brand-action button — does NOT invert with the theme. Pinned to a
+       fixed dark surface + cream text so the affordance reads the same
+       in both modes (otherwise dark-mode would render it as a pale
+       cream slab against the dark page). */
+    .form__submit {
+      appearance: none;
+      margin-top: 1rem;
+      padding: 0.85rem 1rem;
+      background: #1B1622;
+      color: #F1ECDF;
+      border: 1px solid #1B1622;
+      border-radius: 8px;
+      font-family: var(--font-ui, var(--font-body, system-ui, sans-serif));
+      font-size: 0.95rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: background 140ms ease, transform 80ms ease, border-color 140ms ease;
+    }
+    .form__submit:hover {
+      background: #2A2230;
+      border-color: #2A2230;
+    }
+    .form__submit:focus-visible {
+      outline: 2px solid var(--color-link, #7A4636);
+      outline-offset: 3px;
+    }
+    .form__submit:active { transform: translateY(1px); }
+    /* In dark mode, the dark button against a dark page needs a thin
+       border in the brand accent for definition. */
+    [data-theme="dark"] .form__submit {
+      border-color: var(--color-link, #C49080);
+    }
+
+    /* ── Error notice ─────────────────────────────────────────────── */
+
+    .notice {
+      margin: 1.5rem 0 0;
+      padding: 0.7rem 0.95rem 0.7rem 0.85rem;
+      border-left: 2px solid var(--color-callout-warn-border, #A8782A);
+      background: var(--color-callout-warn-bg, #F0E5C3);
+      color: var(--color-text, #1B1622);
+      font-family: var(--font-ui, var(--font-body, system-ui, sans-serif));
+      font-size: 0.9rem;
+      border-radius: 0 6px 6px 0;
+    }
+    .notice strong {
+      font-family: var(--font-special, "Iowan Old Style", Georgia, serif);
+      font-style: italic;
+      font-weight: 500;
+      font-size: 1.05em;
+      letter-spacing: 0.01em;
+      margin-right: 0.4em;
+    }
+
+    /* ── Colophon ─────────────────────────────────────────────────── */
+
+    .colophon {
+      margin-top: auto;
+      padding-top: 3rem;
+      text-align: center;
+      font-family: var(--font-ui, var(--font-body, system-ui, sans-serif));
+      font-size: 0.75rem;
+      color: var(--color-text-muted, #5C5462);
+    }
+    .colophon__rule {
+      position: relative;
+      height: 1em;
+      width: 6rem;
+      margin: 0 auto 0.7rem;
+    }
+    .colophon__rule::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 1px;
+      background: linear-gradient(to right,
+        transparent,
+        var(--color-border, #D2CABA) 25%,
+        var(--color-border, #D2CABA) 75%,
+        transparent);
+    }
+    .colophon__rule::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 1px;
+      height: 0.9em;
+      transform: translate(-50%, -50%);
+      background: var(--color-link, #7A4636);
+      opacity: 0.7;
+    }
+    .colophon p { margin: 0; }
+    .colophon em {
+      font-family: var(--font-special, "Iowan Old Style", Georgia, serif);
+      font-style: italic;
+      font-size: 1.05em;
+      color: var(--color-text-muted, #5C5462);
+    }
+
+    @media (max-width: 24rem) {
+      main.signin { padding: 2.5rem 1.25rem 2rem; }
+      .wordmark { font-size: 2.2rem; }
+      .session { flex-wrap: wrap; }
+      .session__role { order: 3; }
+    }
+  </style>
+</head>
+<body>
+  {{block "main" .}}{{end}}
+</body>
+</html>
+{{end}}
+
+
+{{define "main"}}
+  {{/* Theme control: same IDs / structure as header.html so theme.js binds
+       to it automatically. CSS variables come from the loaded theme.css,
+       so switching toggle modes immediately updates the page palette. */}}
+  <div id="theme-control" class="signin-themebar" data-mode="system">
+    <button id="theme-toggle" type="button" aria-label="Theme: system (click to cycle)" title="Theme: system">
+      <svg class="ti ti-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="ti ti-system" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/></svg>
+      <svg class="ti ti-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    </button>
+    <div id="theme-segment" role="radiogroup" aria-label="Color theme">
+      <button type="button" role="radio" data-theme-set="dark" aria-checked="false" aria-label="Dark" title="Dark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button type="button" role="radio" data-theme-set="system" aria-checked="true" aria-label="Follow system" title="Follow system">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/></svg>
+      </button>
+      <button type="button" role="radio" data-theme-set="light" aria-checked="false" aria-label="Light" title="Light">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <main class="signin">
+    <header class="masthead">
+      <svg class="mark" viewBox="0 0 24 24" fill="none" role="img" aria-label="Leyline">
+        <title>Leyline</title>
+        <g class="ley">
+          <line x1="4" y1="8" x2="20" y2="8"/>
+          <line x1="4" y1="12" x2="20" y2="12"/>
+          <line x1="4" y1="16" x2="20" y2="16"/>
+        </g>
+        <circle class="node" cx="8.5" cy="8" r="1.6"/>
+        <circle class="node" cx="16" cy="16" r="1.6"/>
+      </svg>
+      <h1 class="wordmark">Leyline</h1>
+      <p class="caption">Reading room</p>
+    </header>
+
+    {{with .Auth.LoginError}}
+      <p class="notice" role="alert"><strong>Stopped.</strong>{{.}}</p>
+    {{end}}
+
+    {{if .Auth.VaultRoles}}
+      <div class="rule rule--tight" aria-hidden="true"></div>
+
+      <section class="sessions-block" aria-labelledby="sessions-heading">
+        <p class="sessions__heading" id="sessions-heading">Currently signed in</p>
+        <ul class="sessions">
+          {{range .Auth.VaultRoles}}
+            <li class="session">
+              <span class="session__vault">{{.Vault}}</span>
+              <span class="session__role">{{.Role}}</span>
+              <form class="sessions__release-form" method="POST" action="{{$.Auth.LogoutPath}}">
+                <input type="hidden" name="vault" value="{{.Vault}}">
+                <button class="session__release" type="submit"
+                        aria-label="Release {{.Vault}}">release</button>
+              </form>
+            </li>
+          {{end}}
+        </ul>
+        <form class="sessions__release-form" method="POST" action="{{.Auth.LogoutPath}}">
+          <button class="sessions__release-all" type="submit">Release every key</button>
+        </form>
+      </section>
+
+      <div class="rule" aria-hidden="true"></div>
+
+      <p class="caption" style="text-align:left;margin-bottom:0.6rem">Add another identity</p>
+    {{else}}
+      <div class="rule" aria-hidden="true"></div>
+    {{end}}
+
+    <form class="form" method="POST" action="{{.Auth.LoginPath}}" autocomplete="off" novalidate>
+      <input type="hidden" name="return" value="{{.Auth.ReturnURL}}">
+      <label class="form__label" for="ley-key">Access key</label>
+      <div class="form__field">
+        <input class="form__input"
+               id="ley-key"
+               name="token"
+               type="text"
+               inputmode="text"
+               autocomplete="off"
+               autocapitalize="off"
+               autocorrect="off"
+               spellcheck="false"
+               pattern="ley_[A-Za-z0-9]{20}"
+               placeholder="ley_&hellip;"
+               aria-describedby="ley-key-hint"
+               required
+               autofocus>
+      </div>
+      <p class="form__hint" id="ley-key-hint">
+        Provided by your vault administrator.
+      </p>
+      <button class="form__submit" type="submit">Sign in</button>
+    </form>
+
+    <footer class="colophon">
+      <div class="colophon__rule" aria-hidden="true"></div>
+      <p>A <em>Leyline</em> sync &middot; self-hosted reading room</p>
+    </footer>
+  </main>
+{{end}}

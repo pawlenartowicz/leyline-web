@@ -1,0 +1,29 @@
+#!/sbin/openrc-run
+# Example openrc unit for leyline-web on Alpine. Install at /etc/init.d/leyline-web
+# (root, mode 0755), then `rc-update add leyline-web default`.
+#
+# This is a fork template. Forkers should:
+#   - Adjust paths (/opt/leyline-web/...) to match their layout.
+#   - Adjust command_user if they don't use a shared `leyline` user.
+#   - Confirm the config path passed via -config.
+
+name="leyline-web"
+description="Leyline web reader"
+
+command="/opt/leyline-web/bin/leyline-web"
+command_args="-config /opt/leyline-web/config/config.yaml"
+command_user="leyline:leyline"
+command_background=true
+pidfile="/run/leyline-web.pid"
+output_log="/var/log/leyline-web.log"
+error_log="/var/log/leyline-web.log"
+
+depend() {
+	need net
+	after firewall
+}
+
+start_pre() {
+	checkpath -d -m 0755 -o leyline:leyline /opt/leyline-web
+	checkpath -f -m 0644 -o leyline:leyline /var/log/leyline-web.log
+}

@@ -1,0 +1,1911 @@
+/* leyline_base — canonical CSS variable set + neutral defaults. Children should
+   set only variable VALUES and rarely add new selectors. */
+
+:root {
+  /* Color — Direction A "Twilight scriptorium" trial. */
+  --color-bg: #F1ECDF;
+  --color-text: #1B1622;
+  --color-text-muted: #5C5462;
+  --color-link: #7A4636;
+  --color-link-hover: #5A2F22;
+  --color-border: #D2CABA;
+  --color-code-bg: #E9E2CE;
+  --color-code-text: #1B1622;
+  --color-callout-info-bg: #DCE2EE;
+  --color-callout-info-border: #3F5478;
+  --color-callout-warn-bg: #F0E5C3;
+  --color-callout-warn-border: #A8782A;
+  --color-callout-error-bg: #EFD9CC;
+  --color-callout-error-border: #B5683C;
+  --color-callout-note-bg: #E9E2CE;
+  --color-callout-note-border: #948B7E;
+  --color-callout-success-bg: #D6DCC8;
+  --color-callout-success-border: #5A7048;
+
+  /* Active state — dedicated tokens, no longer borrowing callout-info.
+     Status — for inline indicators (auth dot, future health LEDs). */
+  --color-active-bg: #E2DECB;
+  --color-active-fg: var(--color-link-hover);
+  --color-status-ok: #6B8F5E;
+
+  /* ==highlight== <mark> fill — amber pulled into the parchment palette,
+     deliberately stronger than the callout-warn wash so it reads as a
+     content marker, not chrome. */
+  --color-highlight: #E5C97E;
+
+  /* Raised surface — a faint tile tint sitting between bg and code-bg. Used by
+     the floating right rail (search + ToC); see the desktop rail rule below. */
+  --color-surface: #EAE3D1;
+
+  /* Typography
+     --font-body: system-native, for long-form reading. Per-OS familiarity > visual consistency.
+     --font-ui:   leyline-native (Inter), for chrome (header / sidebar / footer / nav).
+     --font-mono: leyline-native (JetBrains Mono), for code.
+     All three include verified Polish glyph coverage; --font-body relies on
+     OS fonts which all cover Latin Extended-A. */
+  --font-body: -apple-system, "Segoe UI", system-ui, sans-serif;
+  --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --font-size-base: 16px;
+  --font-size-code: 0.875em;
+  --line-height-body: 1.55;
+
+  /* Layout */
+  --max-content-width: 42rem;
+  --sidebar-width: 16rem;
+  --max-page-width: 72rem;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
+  --space-4: 2rem;
+}
+
+[data-theme="dark"] {
+  --color-bg: #1B1622;
+  --color-text: #F1ECDF;
+  --color-text-muted: #9A93A5;
+  --color-link: #C49080;
+  --color-link-hover: #DBAEA0;
+  --color-border: #3A3344;
+  --color-code-bg: #2A2230;
+  --color-code-text: #F1ECDF;
+  --color-callout-info-bg: #232238;          /* was #1F2436 — slight plum tint, less steel */
+  --color-callout-info-border: #8593C2;      /* was #7891BC — match the warmer bg */
+  --color-callout-warn-bg: #2E2618;
+  --color-callout-warn-border: #C49640;
+  --color-callout-error-bg: #2E211B;
+  --color-callout-error-border: #D5836F;
+  --color-callout-note-bg: #2A2230;
+  --color-callout-note-border: #7A7160;
+  --color-callout-success-bg: #1F2418;
+  --color-callout-success-border: #8AA070;
+
+  /* Warm plum active state — matches the dark bg family. */
+  --color-active-bg: #2E2438;
+  --color-active-fg: var(--color-link-hover);
+  --color-status-ok: #8AA070;
+
+  --color-highlight: #5E4D22;
+
+  /* Raised surface — half a step of plum lift above the page. */
+  --color-surface: #221C2B;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+html, body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: var(--font-size-base)/var(--line-height-body) var(--font-body);
+}
+
+/* Cross-document view transitions: the browser snapshots the outgoing page and
+   crossfades to the incoming one on same-origin navigation, so there is no
+   blank frame between pages. Progressive — unsupported browsers (Firefox today)
+   just do a normal navigation. The reduced-motion guard below stills the
+   crossfade for readers who ask for it. */
+@view-transition {
+  navigation: auto;
+}
+
+a { color: var(--color-link); text-decoration: none; }
+a:hover { color: var(--color-link-hover); text-decoration: underline; }
+
+/* Mobile-first: single column, sidebar is a slide-in drawer. */
+main {
+  display: grid;
+  grid-template-columns: minmax(0, var(--max-content-width));
+  gap: var(--space-4);
+  max-width: var(--max-content-width);
+  margin: var(--space-4) auto;
+  padding: 0 var(--space-3);
+}
+
+/* Left rail: a slide-in drawer on mobile. */
+.sidebar-left {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 20;
+  width: min(85vw, 20rem);
+  background: var(--color-bg);
+  border-right: 1px solid var(--color-border);
+  padding: var(--space-3);
+  overflow-y: auto;
+  transform: translateX(-100%);
+  transition: transform 0.2s ease-out;
+  font-family: var(--font-ui);
+}
+body[data-sidebar="open"] .sidebar-left { transform: translateX(0); }
+body[data-sidebar="open"] { overflow: hidden; }
+
+/* Right rail (search + ToC): desktop-only. It used to stack in-flow below the
+   article on mobile, but a bottom-of-page ToC is low value on a phone, so the
+   rail is suppressed on narrow viewports. font-family persists for the desktop
+   rail — the desktop rules below don't re-declare it. */
+.sidebar-right {
+  font-family: var(--font-ui);
+  display: none;
+}
+
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+body[data-sidebar="open"] .sidebar-backdrop {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#sidebar-toggle,
+#sidebar-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  border-radius: 4px;
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+#sidebar-close {
+  display: block;
+  margin-left: auto;
+  margin-bottom: var(--space-2);
+}
+
+/* The toggle only reveals the left-rail drawer. LayoutMode collapses an empty
+   widget rail to "none", so data-left is "widgets" exactly when a rail has
+   something to open. With no left widgets (header-nav-only / chrome-light
+   vaults like static_page) there is nothing to reveal — hide the toggle so
+   there is no dead control. Desktop (>=64rem) hides it regardless, below. */
+body:not([data-left="widgets"]) #sidebar-toggle { display: none; }
+
+@media (min-width: 64rem) {
+  /* Three tracks: left rail | article | right rail. The rail tracks exist
+     only when their side is a widget stack (--col-left/--col-right); a "body"
+     side adds its width to the article instead (--extra-left/--extra-right);
+     none/references/unset leave both at 0. See the body[data-*] rules below. */
+  main {
+    grid-template-columns:
+      var(--col-left, 0px)
+      minmax(0, calc(var(--max-content-width) + var(--extra-left, 0px) + var(--extra-right, 0px)))
+      var(--col-right, 0px);
+    max-width: var(--max-page-width);
+  }
+  /* Explicit track placement so the article always occupies the centre column
+     and each rail its own edge column, regardless of which rails are present.
+     With pure DOM auto-placement, a page that renders no LEFT aside (e.g.
+     static_page's body/body, or any right-only rail) drops the lone <article>
+     into the empty 0px left track and collapses it. Pages that DO have a left
+     rail are unaffected — auto-placement already put them in these tracks. */
+  .sidebar-left  { grid-column: 1; }
+  main > article { grid-column: 2; }
+  .sidebar-right { grid-column: 3; }
+  .sidebar {
+    position: sticky;
+    top: var(--space-3);
+    left: auto;
+    bottom: auto;
+    z-index: auto;
+    width: auto;
+    background: transparent;
+    overflow-y: visible;
+    transform: none;
+    align-self: start;
+    margin-top: 0;
+    border-top: none;
+  }
+  .sidebar-left  { padding: 0 var(--space-3) 0 0; border-right: 1px solid var(--color-border); }
+  /* Right rail drifts: it rests level with the article top, then JS eases it
+     down to a comfortable reading height (~30vh) as you scroll into the body
+     and holds it there (see the rail-drift block in theme.js). Sticky does the
+     pinning; JS only sets a downward translateY. With JS off / reduced-motion
+     it stays top-aligned here. max-height is bounded at the settled height so a
+     long ToC scrolls inside the rail rather than running off the bottom.
+     The rail is a floating tile — filled surface, hairline border, soft
+     corners, padded all round. The drift is what makes that weight read as
+     floating, so the tile carries no shadow (the house "no pill, no shadow"
+     rule holds). box-sizing keeps the padded, bordered box within the bounded
+     height. (.sidebar.sidebar-right out-specifies the shared .sidebar top rule.) */
+  .sidebar.sidebar-right {
+    display: block; /* un-hide the mobile-suppressed right rail on desktop */
+    box-sizing: border-box;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    padding: var(--space-3);
+    top: var(--space-3);
+    max-height: calc(100vh - 30vh - var(--space-4));
+    overflow-y: auto;
+    will-change: transform;
+  }
+  /* toc_follow: pin — plain sticky near the top, no drift (the JS skips the
+     translateY for this mode). The rail starts at the top rather than settling
+     30vh down, so it gets the full viewport height to scroll a long ToC
+     within. body[data-toc-follow="drift"] keeps the bounded height above. */
+  body[data-toc-follow="pin"] .sidebar.sidebar-right {
+    max-height: calc(100vh - var(--space-4));
+  }
+  .sidebar-backdrop,
+  #sidebar-toggle,
+  #sidebar-close { display: none; }
+}
+
+/* Sidebar column sizing, consumed by the desktop grid above.
+   widgets → a rail track; body → no track, article absorbs a rail's width;
+   none / references / unset → no track, article keeps its natural width
+   (references floats footnotes into the right page margin — see refs-side). */
+body[data-left="widgets"]  { --col-left: minmax(12rem, var(--sidebar-width)); }
+body[data-right="widgets"] { --col-right: minmax(12rem, var(--sidebar-width)); }
+body[data-left="body"]  { --extra-left: calc(var(--sidebar-width) + var(--space-4)); }
+body[data-right="body"] { --extra-right: calc(var(--sidebar-width) + var(--space-4)); }
+
+/* --- Sidebar nav tree ------------------------------------------------- */
+/* Shared markup: <nav> → .nav-root + <ul.nav-tree> of <li.nav-item>.
+   Directory items wrap children in <details.nav-group><summary>…</summary>
+   <ul.nav-children>…</ul></details>; the server template marks the
+   ancestor chain of the current page with `is-open` and the active leaf
+   with `is-active`, and renders <details open> on the same condition. */
+
+:root {
+  --nav-indent: 0.85rem;
+}
+
+.sidebar nav:not(.version-switcher) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: 0.95em;
+}
+
+.sidebar .nav-root {
+  font-weight: 600;
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+.sidebar .nav-tree,
+.sidebar .nav-children {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.sidebar .nav-children {
+  padding-left: var(--nav-indent);
+  border-left: 1px solid var(--color-border);
+  margin-left: calc(var(--space-1) + 1px);
+  margin-top: var(--space-1);
+}
+.sidebar .nav-item {
+  margin: var(--space-1) 0;
+  line-height: 1.35;
+}
+.sidebar .nav-item > a,
+.sidebar .nav-group-label {
+  display: block;
+  padding: 0.1rem 0.25rem;
+  border-radius: 3px;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+  color: var(--color-text);
+  transition: background-color 120ms ease, color 120ms ease;
+}
+.sidebar .nav-item > a:hover {
+  color: var(--color-link-hover);
+}
+/* Leaf rows take a faint surface on hover for affordance; the tracked-out
+   top-level section headers stay flat (they're labels, not destinations). */
+.sidebar .nav-children .nav-item > a:hover {
+  background: var(--color-code-bg);
+}
+.sidebar .nav-group-label {
+  opacity: 0.7;
+}
+/* Top-level items: tracked-out small caps in muted text — section
+   headers, not "first nav row". Children stay normal weight, so the
+   eye gets a clear visual stop between levels. */
+.sidebar .nav-tree > .nav-item > a,
+.sidebar .nav-tree > .nav-item > details > summary > a,
+.sidebar .nav-tree > .nav-item > .nav-group-label,
+.sidebar .nav-tree > .nav-item > details > summary > .nav-group-label {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-top: var(--space-3);
+}
+.sidebar .nav-tree > .nav-item:first-child > a,
+.sidebar .nav-tree > .nav-item:first-child > details > summary > a,
+.sidebar .nav-tree > .nav-item:first-child > .nav-group-label,
+.sidebar .nav-tree > .nav-item:first-child > details > summary > .nav-group-label {
+  margin-top: 0;
+}
+/* Active top-level item: full-strength text colour, no muting. */
+.sidebar .nav-tree > .nav-item.is-active > a,
+.sidebar .nav-tree > .nav-item.is-active > details > summary > a {
+  color: var(--color-text);
+}
+.sidebar .nav-children .nav-item > a,
+.sidebar .nav-children .nav-item > details > summary > a,
+.sidebar .nav-children .nav-item > .nav-group-label,
+.sidebar .nav-children .nav-item > details > summary > .nav-group-label {
+  font-weight: 400;
+}
+.sidebar .nav-dir.is-open > details > summary > a,
+.sidebar .nav-dir.is-open > details > summary > .nav-group-label {
+  opacity: 1;
+}
+.sidebar .nav-item.is-active > a,
+.sidebar .nav-item.is-active > details > summary > a,
+.sidebar .nav-root.is-active {
+  background: var(--color-active-bg);
+  color: var(--color-active-fg);
+  font-weight: 600;
+}
+/* Active leaf inside a group: an oxblood tick on the nav-children spine,
+   mirroring the table of contents so both rails share one "you are here"
+   vocabulary. The tick sits left of the active pill, on the 1px guide. */
+.sidebar .nav-children .nav-item.is-active { position: relative; }
+.sidebar .nav-children .nav-item.is-active::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--nav-indent) - 1px);
+  top: 0.15rem;
+  bottom: 0.15rem;
+  width: 2px;
+  background: var(--color-link);
+  border-radius: 1px;
+}
+
+/* Collapsible directory rows. <details>/<summary> drive the default
+   expand/collapse state from the server (open ⇔ ancestor of current
+   page); clicks toggle without JS. The chevron is the only disclosure
+   affordance — the native triangle marker is hidden. */
+.sidebar details.nav-group {
+  margin: 0;
+  padding: 0;
+}
+.sidebar .nav-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.sidebar .nav-summary::-webkit-details-marker { display: none; }
+.sidebar .nav-summary::marker { content: ""; }
+.sidebar .nav-summary::before {
+  content: "";
+  display: inline-block;
+  width: 0;
+  height: 0;
+  flex-shrink: 0;
+  border-top: 0.32em solid transparent;
+  border-bottom: 0.32em solid transparent;
+  border-left: 0.4em solid currentColor;
+  opacity: 0.55;
+  margin-right: 0.15rem;
+  transform: translateY(0.05em) rotate(0deg);
+  transform-origin: 35% 50%;
+  transition: transform 120ms ease;
+}
+.sidebar details.nav-group[open] > .nav-summary::before {
+  transform: translateY(0.05em) rotate(90deg);
+}
+.sidebar .nav-summary > a,
+.sidebar .nav-summary > .nav-group-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.site-header {
+  max-width: var(--max-page-width);
+  margin: 0 auto;
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--font-ui);
+}
+.site-header > .brand { margin-right: auto; }
+
+.site-footer {
+  max-width: var(--max-page-width);
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-3);
+  border-top: 1px solid var(--color-border);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 0.85em;
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
+}
+.footer-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+.footer-end { justify-self: end; }
+.site-footer a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+.site-footer a:hover { color: var(--color-link-hover); }
+
+/* ===== Auth panel (Phase 2c) =====
+   Inline chrome embedded by header.html / footer.html when
+   .Theme.Defaults.Auth.LoginButton selects that placement. In the header,
+   .brand's margin-right:auto already pushes the panel (and the theme
+   control next to it) to the right edge. In the footer, the grid layout
+   places the panel in the right-hand column. */
+.auth-panel { display: inline-flex; align-items: center; font-size: 0.9em; }
+.auth-panel a, .auth-panel summary { color: inherit; text-decoration: none; }
+.auth-panel__login {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  padding: 0.25rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  color: var(--color-text);
+}
+.auth-panel__login:hover { background: var(--color-code-bg); text-decoration: none; }
+.auth-panel__login::before {
+  content: ""; display: inline-block; width: 0.5rem; height: 0.5rem;
+  border-radius: 50%; background: var(--color-text-muted);
+}
+.auth-panel__details { position: relative; }
+.auth-panel__summary {
+  cursor: pointer; list-style: none;
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  padding: 0.25rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+}
+.auth-panel__summary::-webkit-details-marker { display: none; }
+.auth-panel__summary::marker { content: ""; }
+.auth-panel__dot {
+  width: 0.5rem; height: 0.5rem; background: var(--color-status-ok); border-radius: 50%;
+}
+.auth-panel__body {
+  position: absolute; right: 0; top: calc(100% + 0.4rem);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: var(--space-2);
+  min-width: 14rem;
+  display: grid; gap: var(--space-2);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  z-index: 10;
+}
+.auth-panel__row {
+  display: grid; grid-template-columns: 1fr auto auto;
+  gap: var(--space-2); align-items: center;
+  font-size: 0.9em;
+}
+.auth-panel__vault { font-family: var(--font-mono); color: var(--color-text-muted); }
+.auth-panel__role { font-weight: 500; }
+.auth-panel__inline-form { margin: 0; }
+.auth-panel__icon-btn {
+  border: none; background: transparent; cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: 1rem; line-height: 1; padding: 0 0.25rem; border-radius: 4px;
+}
+.auth-panel__icon-btn:hover { color: var(--color-link-hover); background: var(--color-code-bg); }
+.auth-panel__form { margin: 0.25rem 0 0; }
+.auth-panel__btn {
+  width: 100%; padding: 0.3rem 0.6rem;
+  border: 1px solid var(--color-border); background: var(--color-bg);
+  color: var(--color-text);
+  border-radius: 6px; cursor: pointer; font: inherit; font-size: 0.9em;
+}
+.auth-panel__btn:hover { background: var(--color-code-bg); }
+
+pre, code { font-family: var(--font-mono); font-size: var(--font-size-code); }
+pre {
+  background: var(--color-code-bg);
+  color: var(--color-code-text);
+  padding: var(--space-3);
+  overflow-x: auto;
+  border-radius: 4px;
+}
+
+.page-body img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Obsidian-style callouts. The page renderer emits <div class="callout
+   callout-<type>"> with a .callout-title and .callout-body inside. Colour
+   variables map roughly to Obsidian's groupings; unknown types fall through
+   to the .callout (note) defaults. */
+.callout {
+  margin: var(--space-3) 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--color-callout-note-border);
+  background: var(--color-callout-note-bg);
+  border-radius: 4px;
+}
+.callout-title {
+  font-weight: 600;
+  margin-bottom: var(--space-1);
+}
+.callout-body > :first-child { margin-top: 0; }
+.callout-body > :last-child { margin-bottom: 0; }
+
+/* Foldable callouts share the .callout shell. <summary> renders the
+   disclosure triangle by default — keep it visible but indent text to
+   match the non-foldable title position. */
+details.callout > summary.callout-title {
+  cursor: pointer;
+  list-style-position: inside;
+}
+
+.callout-info, .callout-abstract, .callout-summary, .callout-tldr, .callout-todo {
+  border-left-color: var(--color-callout-info-border);
+  background: var(--color-callout-info-bg);
+}
+.callout-tip, .callout-hint, .callout-important,
+.callout-success, .callout-check, .callout-done {
+  border-left-color: var(--color-callout-success-border);
+  background: var(--color-callout-success-bg);
+}
+.callout-warning, .callout-caution, .callout-attention {
+  border-left-color: var(--color-callout-warn-border);
+  background: var(--color-callout-warn-bg);
+}
+.callout-danger, .callout-error, .callout-bug,
+.callout-failure, .callout-fail, .callout-missing {
+  border-left-color: var(--color-callout-error-border);
+  background: var(--color-callout-error-bg);
+}
+
+.brand {
+  font-weight: 600;
+  color: var(--color-text);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+}
+.brand-text {
+  display: inline-flex;
+  flex-direction: column;
+  line-height: 1.05;
+  gap: 0.15rem;
+}
+.brand-text > span:first-child { font-size: 1.9rem; line-height: 1.1; }
+.brand-tagline {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+.brand-logo { width: 2.6em; height: 2.6em; display: block; }
+.brand-logo-dark { display: none; }
+[data-theme="dark"] .brand-logo-light { display: none; }
+[data-theme="dark"] .brand-logo-dark { display: block; }
+
+/* Optional in-header navigation (rendered only when the vault declares
+   `header.navigation` in web.yaml). */
+.site-nav {
+  display: flex;
+  align-items: center;
+  margin-right: var(--space-3);
+}
+.site-nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: var(--space-3);
+}
+.site-nav-item {
+  position: relative;
+}
+.site-nav-item > a,
+.site-nav-label {
+  position: relative;
+  color: inherit;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.25rem 0;
+  transition: color 120ms ease;
+}
+/* Underline grows in from the left on hover and sits full-width when the
+   item is the current section — one mechanism for both states, so there's
+   no layout shift between a bordered active item and a plain one. */
+.site-nav-item > a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 160ms ease;
+}
+.site-nav-item > a:hover { color: var(--color-link-hover); }
+.site-nav-item > a:hover::after,
+.site-nav-item.is-active > a::after { transform: scaleX(1); }
+.site-nav-item.is-active > a { color: var(--color-link); }
+.site-nav-item.has-children:hover > .site-nav-children,
+.site-nav-item.has-children:focus-within > .site-nav-children {
+  display: block;
+}
+.site-nav-children {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 14rem;
+  margin: 0;
+  padding: var(--space-2) 0;
+  list-style: none;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  z-index: 10;
+}
+.site-nav-child a {
+  display: block;
+  padding: 0.35rem var(--space-3);
+  color: inherit;
+  text-decoration: none;
+}
+.site-nav-child a:hover { background: var(--color-code-bg); }
+.site-nav-child.is-active a { color: var(--color-link); font-weight: 600; }
+@media (max-width: 40rem) {
+  .site-nav { display: none; }
+}
+#theme-control {
+  display: inline-flex;
+  align-items: center;
+}
+button#theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  border-radius: 14px;
+  min-width: 44px;
+  min-height: 44px;
+  cursor: pointer;
+  padding: 0;
+}
+#theme-toggle svg { width: 1.1rem; height: 1.1rem; display: none; }
+#theme-control[data-mode="dark"]   #theme-toggle .ti-dark   { display: block; }
+#theme-control[data-mode="system"] #theme-toggle .ti-system { display: block; }
+#theme-control[data-mode="light"]  #theme-toggle .ti-light  { display: block; }
+
+#theme-segment {
+  display: none;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+#theme-segment button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  color: var(--color-text);
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0 0.55rem;
+  cursor: pointer;
+}
+#theme-segment button + button { border-left: 1px solid var(--color-border); }
+#theme-segment button svg { width: 1.05rem; height: 1.05rem; }
+#theme-segment button[aria-checked="true"] {
+  background: var(--color-border);
+}
+#theme-segment button:focus-visible {
+  outline: 2px solid var(--color-link);
+  outline-offset: -2px;
+}
+
+@media (min-width: 45rem) {
+  button#theme-toggle { display: none; }
+  #theme-segment { display: inline-flex; }
+}
+
+/* Inter — UI face for header / sidebar / footer / nav. Two weights:
+   400 for body chrome, 600 for brand and active nav. Subset to latin +
+   latin-ext + common punctuation/superscript/currency/letterlike. */
+@font-face {
+  font-family: "Inter";
+  src: url("fonts/inter-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-024F, U+2000-206F, U+2070-209F, U+20A0-20CF, U+2100-214F;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("fonts/inter-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-024F, U+2000-206F, U+2070-209F, U+20A0-20CF, U+2100-214F;
+}
+
+/* JetBrains Mono — code face. One weight (400). Subset includes box-drawing
+   and arrows for log decoration. Ligatures deliberately disabled — neutral
+   default; vaults can opt in via custom CSS. */
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("fonts/jetbrains-mono-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-024F, U+2000-206F, U+2070-209F, U+20A0-20CF, U+2100-214F, U+2190-21FF, U+2500-257F;
+}
+
+/* Special font for built-in default brand marks. The italic Cormorant
+   Garamond face renders the literal strings "Leyline" / "Notes" when the
+   operator has not customised VaultName — a visible "this is a default,
+   customise me" cue. Themes wanting a different special font ship their
+   own face and override --font-special. */
+@font-face {
+  font-family: "Cormorant Garamond";
+  src: url("fonts/cormorant-garamond-italic.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 500;
+  font-display: swap;
+  unicode-range: U+0000-024F;
+}
+
+:root {
+  --font-special: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+}
+
+.brand-name--default,
+.sidebar .nav-root--default {
+  font-family: var(--font-special);
+  font-style: italic;
+  font-weight: 500;
+}
+
+/* --- 404 / Not Found page -------------------------------------------- */
+
+.not-found {
+  font-family: var(--font-ui);
+  text-align: center;
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+}
+.not-found__numeral {
+  font-family: var(--font-special);
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(6rem, 18vw, 10rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+/* Same crossing-tick mark as the section-break <hr> below — change together. */
+.not-found__ornament {
+  position: relative;
+  height: 1em;
+  width: min(20rem, 80%);
+  margin: 0 auto;
+}
+.not-found__ornament::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(to right,
+    transparent,
+    var(--color-border) 25%,
+    var(--color-border) 75%,
+    transparent);
+}
+.not-found__ornament::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1px;
+  height: 0.9em;
+  transform: translate(-50%, -50%);
+  background: var(--color-link);
+  opacity: 0.7;
+}
+.not-found__message {
+  font-size: 1.05rem;
+  margin: 0;
+  max-width: 32rem;
+}
+.not-found__message em {
+  font-family: var(--font-special);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.1em;
+}
+.not-found__path {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  max-width: 32rem;
+  word-break: break-all;
+}
+.not-found__return {
+  margin: var(--space-3) 0 0;
+  font-size: 0.95rem;
+}
+.not-found__switcher {
+  margin-top: var(--space-3);
+}
+
+/* --- PDF viewer page ------------------------------------------------- */
+
+.pdf-page-header h1 {
+  overflow-wrap: anywhere;
+}
+
+/* The frame is the positioning context for the floating toolbar overlay,
+   which sits in DOM order *before* .leyline-pdf-host (the scrolling
+   container). Frame itself doesn't scroll — only the host inside it —
+   so the absolute toolbar stays pinned to the top-left of the visible
+   PDF area as the user scrolls through pages. */
+.leyline-pdf-frame {
+  position: relative;
+  width: 100%;
+}
+
+/* Rasterized PDF pages are always white regardless of site theme, so the
+   toolbar is pinned to neutral light styling rather than tracking
+   --color-bg/--color-text. In dark mode the previous theme-tracking
+   colors disappeared against the white page underneath. */
+.pdf-toolbar {
+  position: absolute;
+  top: 1.5rem;
+  left: 0.75rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.2rem;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.85);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  opacity: 0.55;
+  transition: opacity 120ms ease-out;
+}
+
+.pdf-toolbar:hover,
+.pdf-toolbar:focus-within {
+  opacity: 1;
+}
+
+.pdf-toolbar button,
+.pdf-toolbar .pdf-download {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  height: 1.6rem;
+  padding: 0 0.4rem;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #1a1a1a;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.pdf-toolbar button:hover,
+.pdf-toolbar .pdf-download:hover {
+  background: rgba(0, 0, 0, 0.08);
+  text-decoration: none;
+}
+
+.pdf-toolbar button:focus-visible,
+.pdf-toolbar .pdf-download:focus-visible {
+  outline: 2px solid var(--color-link);
+  outline-offset: 2px;
+}
+
+.pdf-toolbar .pdf-zoom-reset {
+  min-width: 2.75rem;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.75rem;
+}
+
+.pdf-page-body { padding: 0; }
+
+/* The host is the document's own scroll container — long PDFs no longer
+   push the page header, sidebar, or footer off the screen. Height is a
+   viewport-relative chunk minus enough room for the site header + page
+   header + a bit of breathing space; tunable via --pdf-host-height. */
+.leyline-pdf-host {
+  --pdf-host-height: calc(100vh - 14rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  height: var(--pdf-host-height);
+  min-height: 22rem;
+  max-height: 90vh;
+  overflow: auto;
+  /* Reserve vertical scrollbar space always — without this, the fit-to-
+     width layout is computed before the vertical scrollbar appears, then
+     the scrollbar pops in and pages overflow horizontally by exactly its
+     width. */
+  scrollbar-gutter: stable;
+  padding: 0;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+}
+
+/* Embeds appear inline among other note content, so they get a shorter
+   reading surface (and the surrounding note keeps its flow). The full-
+   height treatment is reserved for direct .pdf navigations. */
+.leyline-pdf-frame--embed .leyline-pdf-host {
+  --pdf-host-height: 60vh;
+  max-height: 70vh;
+}
+
+.leyline-pdf-page {
+  position: relative; /* anchors the absolutely-positioned text layer */
+  /* border-box so JS-set width includes the 1px border on each side —
+     otherwise pages overflow the host by 2px and trip a horizontal
+     scrollbar with nothing to actually scroll. */
+  box-sizing: border-box;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  flex: 0 0 auto;
+  /* `container-type: size` lets the transparent text-layer below use
+     `cqh` units to keep font sizes proportional to the visible page
+     height under any zoom factor — no JS reflow needed when the user
+     hits +/- in the toolbar. */
+  container-type: size;
+}
+
+.leyline-pdf-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* Pages are rasterized server-side at the configured DPI; the browser
+     scales the bitmap with bilinear AA at any CSS size between fit-width
+     and toolbar-zoom. 200 DPI is the project default — sharp at 1× and
+     still clean at 2× zoom on a 1× DPR display. */
+}
+
+/* Transparent text layer overlaid on the rasterized image so users can
+   select / copy / Ctrl-F search real text. Positioning is percentage-
+   based against the page container's intrinsic aspect ratio, so the
+   layer scales perfectly with CSS zoom of the parent without any JS
+   recomputation. Font size uses `cqh` (1% of container height) so each
+   word's bbox height in PDF points → percentage → CSS pixels with the
+   same scale factor as everything else. */
+.leyline-pdf-text-layer {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  line-height: 1;
+  z-index: 1;
+}
+
+.leyline-pdf-text-layer span {
+  position: absolute;
+  color: transparent;
+  white-space: pre;
+  cursor: text;
+  /* Single-line text fits within the bbox box; the slight overshoot
+     `transform-origin` provides keeps glyphs aligned with the image
+     when the browser hyphenates differently than poppler reported. */
+  transform-origin: 0 0;
+  user-select: text;
+}
+
+.leyline-pdf-text-layer ::selection {
+  background: rgba(0, 100, 255, 0.35);
+  /* No color override — selected glyphs stay invisible so only the
+     image's underlying text shows through the selection highlight. */
+}
+
+.leyline-pdf-fallback {
+  /* Browser-fallback iframe (poppler missing or pdf_renderer: browser).
+     Fills the page-body region; the inner viewer brings its own chrome. */
+  width: 100%;
+  height: calc(100vh - 10rem);
+  min-height: 22rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+}
+
+.pdf-loading,
+.pdf-error {
+  padding: var(--space-3);
+  color: var(--color-muted, var(--color-text));
+  text-align: center;
+}
+
+.pdf-error { color: #b00020; }
+
+
+/* ===== Phase 2c: edit-mode switch (preview / edit / split) =====
+   Tab-style segmented control rendered above the page H1 when the
+   vault's guest_role grants edit and the active theme opts in via
+   defaults.edit_switch.enabled. Visibility of the *split* option is
+   CSS-only — when the viewport is too narrow to fit two readable
+   panes, the option is hidden and an existing ?mode=split selection
+   degrades to single-pane preview by way of the .mode-split rule
+   below. */
+
+/* Colophon-style edit switch — reads as a section header / tab strip
+   rather than a Material toggle. Same DOM, same JS hook, no template
+   changes. The .is-active option gets a thicker underline; the rest
+   are tracked-out caps in muted text. */
+.edit-mode-switch {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0;
+  margin: 0 0 var(--space-4);
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  border-radius: 0;
+  overflow: visible;
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.edit-mode-switch__option {
+  padding: 0.55em 1.1em 0.55em;
+  margin-bottom: -1px;  /* overlap parent border so active underline aligns */
+  text-decoration: none;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 0;
+  border-right: 1px solid var(--color-border);
+  border-bottom: 2px solid transparent;
+  line-height: 1;
+}
+
+.edit-mode-switch__option:last-child { border-right: 0; }
+
+.edit-mode-switch__option:hover,
+.edit-mode-switch__option:focus-visible {
+  background: transparent;
+  color: var(--color-text);
+}
+
+.edit-mode-switch__option.is-active {
+  background: transparent;
+  color: var(--color-text);
+  border-bottom-color: var(--color-link);
+  font-weight: 600;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Edit pane (used by ?mode=edit and inside ?mode=split). Just a thin
+   wrapper around the <pre> source block; Phase 3a adds the real editor
+   plus a toolbar inside this same hook. */
+.edit-pane {
+  display: block;
+}
+
+.edit-source {
+  margin: 0;
+  padding: var(--space-2, 0.5rem);
+  background: var(--color-bg-soft, rgba(0, 0, 0, 0.03));
+  border: 1px solid var(--color-border, currentColor);
+  border-radius: 4px;
+  overflow-x: auto;
+  white-space: pre;
+  tab-size: 4;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  line-height: var(--line-height-body, 1.55);
+}
+
+/* Split pane: side-by-side preview + edit. Sized so each pane gets the
+   normal content measure (var(--max-content-width)); the host <main> is
+   widened to fit (see body[data-mode="split"] rule). Below 80rem the
+   widened layout doesn't fit, so we collapse to single-pane preview and
+   hide the split-option link. */
+.mode-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3, 1rem);
+  align-items: start;
+}
+
+.mode-pane { min-width: 0; }
+
+/* When the page is rendered in split mode, expand <main> so the two
+   panes get full-measure width. Only meaningful at >= 80rem; below that
+   the .mode-split rule above collapses to single-pane preview and the
+   default <main> width still applies. */
+@media (min-width: 80rem) {
+  body[data-mode="split"] main {
+    grid-template-columns:
+      minmax(12rem, var(--sidebar-width))
+      minmax(0, calc(var(--max-content-width) * 2 + var(--space-3, 1rem)));
+    max-width: calc(var(--max-page-width) + var(--max-content-width));
+  }
+}
+
+@media (max-width: 80rem) {
+  .mode-split { grid-template-columns: 1fr; }
+  .mode-split .mode-pane--edit-host { display: none; }
+  .edit-mode-switch__option--split { display: none; }
+}
+
+.version-switcher {
+  margin-bottom: var(--space-2);
+  font-size: 0.9em;
+}
+.version-switcher > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+  padding: 0.3rem 0.55rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+.version-switcher > summary::-webkit-details-marker { display: none; }
+.version-switcher > summary::marker { content: ""; }
+.version-switcher > summary:hover { border-color: var(--color-text-muted); }
+.version-switcher .vs-current {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.version-switcher .vs-caret {
+  color: var(--color-text-muted);
+  transition: transform 0.15s ease-out;
+  flex: 0 0 auto;
+}
+.version-switcher[open] > summary .vs-caret { transform: rotate(180deg); }
+
+.version-switcher .vs-menu {
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0.2rem 0;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  max-height: 16rem;
+  overflow-y: auto;
+}
+.version-switcher .vs-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.3rem 0.55rem 0.3rem 1.4rem;
+  color: var(--color-text);
+  text-decoration: none;
+  position: relative;
+}
+.version-switcher .vs-item:hover {
+  background: var(--color-code-bg);
+  color: var(--color-link-hover);
+}
+.version-switcher .vs-item.is-current { font-weight: 600; }
+.version-switcher .vs-item.is-current::before {
+  content: "●";
+  position: absolute;
+  left: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-link);
+  font-size: 0.7em;
+}
+.version-switcher .vs-marker {
+  color: var(--color-text-muted);
+  font-size: 0.85em;
+}
+
+/* ===== Footnote popovers =====
+   The popover is a separate <div class="footnote-popover"> appended to
+   <body> by JS — not the source <li>. Position is set inline by JS at
+   open time (viewport coords; popover lives in the top layer when open).
+   Override the UA :popover-open centering so JS-set top/left wins. */
+.footnote-popover[popover] {
+  position: fixed;
+  margin: 0;
+  inset: auto;
+  max-width: min(28rem, calc(100vw - 2rem));
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 0.92em;
+  line-height: 1.45;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+.footnote-popover > :first-child { margin-top: 0; }
+.footnote-popover > :last-child { margin-bottom: 0; }
+/* Pinned (click-opened) popovers get a slightly bolder accent so it's
+   visible they won't auto-close on mouseleave. */
+.footnote-popover.pinned {
+  border-color: var(--color-link);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
+}
+
+/* When JS has wired popovers, the popover is the inline view — hide the
+   bottom block to avoid duplicate content. The sidenote rule below
+   overrides this (display: contents) when the rail layout is active,
+   so refs-side wide viewports still render <li>s in the gutter. In
+   refs-side narrow viewports the bottom block IS hidden, and the
+   popover provides the inline view on hover. */
+body.has-footnote-popovers .footnotes { display: none; }
+
+/* ===== Sidenotes (refs-side mode) ===== */
+
+body.refs-side {
+  --sidenote-rail: 16rem;
+}
+
+/* Activation gated on anchor() support and on viewport width wide enough
+   that the rail fits in the auto-centering gutter to the right of <main>.
+   Threshold = main width (~60rem at default sidebar+content) + rail (16rem)
+   + gap (1rem) + symmetric left buffer ≈ 94rem. Below it: footnotes stay
+   in the bottom block, popovers handle the inline view. */
+@supports (top: anchor(top)) {
+  @media (min-width: 88rem) {
+    body.refs-side article { position: relative; }
+    body.refs-side .footnotes {
+      /* <li>s escape via position:absolute; collapse the wrapper and
+         seed the per-page sidenote counter on its parent so numbering
+         survives `display: contents`. */
+      display: contents;
+      counter-reset: sidenote;
+    }
+    body.refs-side .footnotes li {
+      position: absolute;
+      /* Flush to article's right edge + gap → lands in the rail track.
+         JS may shadow `top` with an inline px value when a cluster
+         would otherwise overlap; the anchor() fallback stays correct
+         when JS is disabled. */
+      left: calc(100% + var(--space-3));
+      top: anchor(top);
+      width: var(--sidenote-rail);
+      margin: 0;
+      padding: 0.2rem 0.5rem;
+      box-sizing: border-box;
+      /* JS sets --collapse-height to the distance to the next card so
+         each card's visible area is capped at the space available
+         before its neighbour. Unstacked cards get a large gap → no
+         visible clipping. Last card (no --collapse-height) renders at
+         its natural height. */
+      max-height: var(--collapse-height, none);
+      overflow: hidden;
+      font-size: 0.85em;
+      line-height: 1.4;
+      color: var(--color-text-muted);
+      background: var(--color-code-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.12),
+        0 0 0 1px rgba(0, 0, 0, 0.03);
+      list-style: none;
+      counter-increment: sidenote;
+      z-index: 1;
+      cursor: pointer;
+      transition:
+        box-shadow 140ms ease,
+        transform 140ms ease,
+        background 140ms ease,
+        border-color 140ms ease;
+    }
+    body.refs-side .footnotes li > :first-child { margin-top: 0; }
+    body.refs-side .footnotes li > :last-child { margin-bottom: 0; }
+    /* Inject the number INSIDE the first child (typically a <p>) so it
+       joins the first line of body text instead of sitting above it on
+       its own row. Placing ::before on the <li> itself would render
+       outside the <p>, and the block <p> would wrap to the next line. */
+    body.refs-side .footnotes li > :first-child::before {
+      content: counter(sidenote);
+      margin-right: 0.45em;
+      font-family: var(--font-ui);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: var(--color-link);
+    }
+    body.refs-side .footnotes li:hover,
+    body.refs-side .footnotes li:focus-within,
+    body.refs-side .footnotes li.pinned {
+      z-index: 10;
+      max-height: none;
+      overflow: visible;
+      transform: translate(-4px, -1px);
+      background: var(--color-bg);
+      border-color: var(--color-link);
+      box-shadow:
+        0 12px 28px rgba(0, 0, 0, 0.35),
+        0 4px 8px rgba(0, 0, 0, 0.18);
+    }
+    body.refs-side .footnotes li:focus-visible {
+      outline: 2px solid var(--color-link);
+      outline-offset: 2px;
+    }
+    body.refs-side .footnotes li .footnote-backref { display: none; }
+  }
+}
+
+@media print {
+  /* Restore the bottom block for printing — popovers and sidenotes are
+     screen-only conveniences. The popover-hide rule above relies on the
+     has-footnote-popovers class; override it here. */
+  body.has-footnote-popovers .footnotes { display: block; }
+  /* And don't print the popover overlays themselves. */
+  .footnote-popover { display: none; }
+  body.refs-side .footnotes li {
+    position: static;
+    width: auto;
+    box-shadow: none;
+    border: none;
+    padding: 0;
+    background: transparent;
+    transform: none;
+    cursor: auto;
+  }
+  body.refs-side .footnotes li > :first-child::before { content: none; }
+  body.refs-side .footnotes { display: block; }
+}
+
+
+/* =====================================================================
+   ADDITIONS — appended by the 2026-05-24 design review patch set.
+   Sectioned and commented; each block can be removed independently.
+   ===================================================================== */
+
+/* ----- Reading-page typography ---------------------------------------
+   Free upgrades on top of .page-body. Headings balance their wrap,
+   body text gets pretty-wrap, figures + blockquotes get a defined
+   voice consistent with the login-page typography. */
+.page-body h1, .page-body h2, .page-body h3,
+.page-body h4, .page-body h5, .page-body h6 {
+  text-wrap: balance;
+  margin-top: var(--space-4);
+}
+.page-body > h1:first-child,
+.page-body > h2:first-child { margin-top: 0; }
+.page-body p,
+.page-body li { text-wrap: pretty; }
+
+.page-body figure {
+  margin: var(--space-3) 0;
+}
+.page-body figure > img,
+.page-body figure > svg { display: block; max-width: 100%; height: auto; }
+.page-body figcaption {
+  margin-top: var(--space-2);
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* ==highlight== — color:inherit so dark mode keeps light text on the deep
+   amber fill (browser default forces black). Search-hit <mark>s override
+   this with their own ink-underline style further down. */
+.page-body mark {
+  background: var(--color-highlight);
+  color: inherit;
+}
+
+/* Client-side rendered math (KaTeX / MathJax fallback — wired in theme.js).
+   Display equations centre and scroll sideways rather than stretching the
+   column; before JS runs (or with it off) the spans hold raw \[…\] text and
+   these rules are harmless. */
+.page-body .math.display {
+  display: block;
+  text-align: center;
+  overflow-x: auto;
+}
+
+/* Mermaid containers hold an SVG after client-side render — drop the
+   code-block chrome (background/padding from the global `pre` rule) and
+   centre the diagram. Pre-render the raw source sits on the page bg, which
+   reads as "loading", not as a broken code block. */
+.page-body pre.mermaid {
+  background: none;
+  padding: 0;
+  text-align: center;
+}
+
+.page-body blockquote {
+  margin: var(--space-3) 0;
+  padding: 0 var(--space-3);
+  border-left: 2px solid var(--color-link);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+.page-body blockquote > :first-child { margin-top: 0; }
+.page-body blockquote > :last-child { margin-bottom: 0; }
+.page-body blockquote cite {
+  display: block;
+  margin-top: var(--space-2);
+  font-style: normal;
+  font-size: 0.85em;
+  letter-spacing: 0.05em;
+}
+
+/* ----- Crossing-tick <hr> ---------------------------------------------
+   The brand signature that survives VaultName customisation: a fading
+   hairline crossed at centre by a short oxblood tick (same --color-link
+   accent as the ToC current-section tick) — a line crossing a line.
+   Pure CSS: the previous ⁂ asterism was a font glyph and rendered as
+   ragged stacked asterisks on Linux system fonts. Every markdown `---`
+   becomes a Leyline section break. Echoed by .not-found__ornament —
+   change together. */
+.page-body hr,
+.vault-landing hr,
+.vault-index hr {
+  border: 0;
+  height: 1em;
+  margin: var(--space-4) auto;
+  width: min(20rem, 60%);
+  position: relative;
+}
+.page-body hr::before,
+.vault-landing hr::before,
+.vault-index hr::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(to right,
+    transparent,
+    var(--color-border) 25%,
+    var(--color-border) 75%,
+    transparent);
+}
+.page-body hr::after,
+.vault-landing hr::after,
+.vault-index hr::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1px;
+  height: 0.9em;
+  transform: translate(-50%, -50%);
+  background: var(--color-link);
+  opacity: 0.7;
+}
+
+/* --- Sidebar widgets -------------------------------------------------- */
+/* A rail is a stack of .widget blocks (navigation / table_of_content /
+   curated .nav / rendered .md|.html). Each widget may carry an optional
+   .widget-title heading. */
+.widget + .widget { margin-top: var(--space-4); }
+.widget-title {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.78em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
+}
+
+/* Table of contents: a spine of muted entries (h3 indented under their h2),
+   with the section you're currently reading marked by an oxblood tick riding
+   the spine. The .is-current class is driven by the scroll-spy in theme.js;
+   with JS off the list degrades to a plain muted link column against the
+   hairline spine. */
+.widget-toc .toc-list {
+  list-style: none;
+  margin: 0;
+  padding-left: var(--space-3);
+  border-left: 1px solid var(--color-border);
+  font-size: 0.9em;
+}
+.widget-toc .toc-item { position: relative; margin: 0; line-height: 1.3; }
+.widget-toc .toc-item > a {
+  display: block;
+  padding: 0.2rem 0.4rem;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+  transition: color 120ms ease;
+}
+.widget-toc .toc-l3 > a { padding-left: calc(0.4rem + var(--nav-indent)); }
+.widget-toc .toc-item > a:hover { color: var(--color-link-hover); }
+.widget-toc .toc-item.is-current > a { color: var(--color-text); font-weight: 500; }
+/* The tick overlays the 1px spine (the list's border-left): one space-3 of
+   padding plus the border itself sits to the left of the item box. h2 and h3
+   items share the same item-left edge, so every tick lands on the spine
+   regardless of depth. */
+.widget-toc .toc-item.is-current::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--space-3) - 1px);
+  top: 0.2rem;
+  bottom: 0.2rem;
+  width: 2px;
+  background: var(--color-link);
+  border-radius: 1px;
+}
+
+/* Free-form markdown/html widget body. */
+.widget-html { font-size: 0.95em; }
+.widget-html > :first-child { margin-top: 0; }
+.widget-html > :last-child { margin-bottom: 0; }
+
+/* ----- Anchor navigation ---------------------------------------------
+   Clicking a TOC entry (or any in-page #link) lands the heading a little
+   below the viewport top instead of flush against it, and scrolls smoothly
+   unless the reader has asked for reduced motion. The same media guard
+   stills the TOC / nav / header micro-transitions for those readers. */
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+.page-body :is(h1, h2, h3, h4, h5, h6) { scroll-margin-top: var(--space-4); }
+@media (prefers-reduced-motion: reduce) {
+  .site-nav-item > a::after,
+  .widget-toc .toc-item > a,
+  .sidebar .nav-item > a { transition: none; }
+  /* Skip the cross-document navigation crossfade (the new page still appears
+     instantly — only the animated transition is suppressed). */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) { animation: none !important; }
+}
+
+/* ----- Print stylesheet ----------------------------------------------
+   Strip chrome; reflow article at paper width; wrap code instead of
+   horizontally scrolling; print external link URLs after the link.
+   The existing print rules at the bottom of this file (popover /
+   sidenote restore) remain in force. */
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+    font-size: 11pt;
+  }
+  .site-header,
+  .site-footer,
+  .sidebar,
+  .sidebar-backdrop,
+  #sidebar-toggle,
+  .edit-mode-switch,
+  .version-switcher,
+  .admin-panel,
+  .pdf-toolbar {
+    display: none !important;
+  }
+  main {
+    display: block;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+  article,
+  .page-body {
+    display: block;
+    max-width: none;
+  }
+  .page-body > pre,
+  .page-body > .table-wrapper {
+    width: 100%;
+    max-width: none;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    page-break-inside: avoid;
+    background: #f7f5ef;
+    color: #000;
+    border: 1px solid #ccc;
+  }
+  .page-body h1, .page-body h2, .page-body h3 {
+    page-break-after: avoid;
+  }
+  .page-body img,
+  .page-body figure,
+  .page-body table {
+    page-break-inside: avoid;
+  }
+  /* Reveal link targets — useful in printed docs, ignored on screen. */
+  .page-body a[href^="http"]::after,
+  .page-body a[href^="/"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.85em;
+    color: #555;
+    word-break: break-all;
+  }
+  /* …but not for fragment anchors, footnote backrefs, or images-as-links. */
+  .page-body a[href^="#"]::after,
+  .page-body a:has(> img)::after,
+  .footnote-ref a::after,
+  .footnote-backref::after { content: none; }
+}
+
+/* --- Search (trigger + command-palette modal) ------------------------- *
+   The rail renders a field-styled .search-trigger button; activating it
+   opens one centered <dialog class="search-modal"> over a dimmed twilight
+   backdrop. The modal owns the input and a roomy result list — the keyboard-
+   selected entry marked by the same oxblood tick the TOC and nav use, so
+   every "you are here" cue shares one vocabulary. theme.js builds the dialog
+   lazily and drives the debounced fetch / render / keyboard selection; with
+   JS off the trigger is inert. */
+
+/* The trigger: a hairline-underlined button that reads as a search field
+   (no pill, no shadow — the house rule). */
+.search-trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-1) 0.1rem;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  background: none;
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease;
+}
+.search-trigger:hover {
+  border-bottom-color: var(--color-text-muted);
+  color: var(--color-text);
+}
+.search-trigger:focus-visible {
+  outline: 2px solid var(--color-link);
+  outline-offset: 2px;
+}
+.search-trigger .search-icon { width: 15px; height: 15px; flex-shrink: 0; }
+.search-trigger__label { flex: 1; }
+
+/* The modal fills the viewport (transparent) so a click outside the floated
+   panel lands on the dialog element and dismisses it; the panel itself sits
+   near the top, command-palette style. */
+.search-modal {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 100vw;
+  max-height: 100vh;
+  background: transparent;
+  overflow: hidden;
+}
+.search-modal::backdrop {
+  background: rgba(27, 22, 34, 0.5); /* --color-text @ 50% — twilight ink, not pure black */
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+.search-modal__panel {
+  position: absolute;
+  top: 12vh;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  width: min(40rem, calc(100vw - 2rem));
+  max-height: 70vh;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+}
+.search-modal[open] .search-modal__panel { animation: search-pop 160ms ease-out; }
+@keyframes search-pop {
+  from { opacity: 0; transform: translateX(-50%) translateY(-8px) scale(0.985); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+.search-modal__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+.search-modal__head .search-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+.search-modal .search-input {
+  appearance: none;
+  border: 0;
+  background: none;
+  outline: none;
+  font-family: var(--font-ui);
+  font-size: 1.05rem;
+  color: var(--color-text);
+  width: 100%;
+  min-width: 0;
+}
+.search-modal .search-input::placeholder { color: var(--color-text-muted); }
+.search-modal__close {
+  flex-shrink: 0;
+  font-family: var(--font-ui);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.2rem 0.45rem;
+  cursor: pointer;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+.search-modal__close:hover {
+  color: var(--color-text);
+  border-color: var(--color-text-muted);
+}
+
+/* Result list — scrolls within the panel below the fixed input row. */
+.search-modal .search-results {
+  overflow-y: auto;
+  padding: var(--space-3);
+}
+.search-meta {
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
+}
+.search-list {
+  list-style: none;
+  margin: 0;
+  padding-left: var(--space-3);
+  border-left: 1px solid var(--color-border);
+}
+.search-item { position: relative; margin: 0; }
+.search-item + .search-item { margin-top: var(--space-1); }
+.search-item > a {
+  display: block;
+  padding: 0.4rem 0.5rem;
+  border-radius: 3px;
+  color: var(--color-text);
+  text-decoration: none;
+  transition: background-color 120ms ease;
+}
+.search-item > a:hover { background: var(--color-code-bg); }
+.search-item.is-current > a { background: var(--color-active-bg); }
+/* oxblood tick on the spine for the selected result — mirrors .widget-toc */
+.search-item.is-current::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--space-3) - 1px);
+  top: 0.3rem;
+  bottom: 0.3rem;
+  width: 2px;
+  background: var(--color-link);
+  border-radius: 1px;
+}
+.search-title {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.search-path {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  margin-top: 0.1rem;
+  overflow-wrap: anywhere;
+}
+.search-path .sep { opacity: 0.5; padding: 0 0.15em; }
+.search-snippet {
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  margin: 0.2rem 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* the trigram hit — ink, not highlighter */
+.search-snippet mark,
+.search-title mark {
+  background: none;
+  color: var(--color-link);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 2px;
+}
+.search-state {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  padding: var(--space-3) 0.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-modal[open] .search-modal__panel { animation: none; }
+}

@@ -1,0 +1,23 @@
+# Caddyfile — example reverse-proxy in front of leyline-web (and optionally
+# leyline-server on the same VPS). Replace example.com with your domain.
+#
+# leyline-server lives under /_leyline/* on the same hostname. Order
+# matters: the prefixed reverse_proxy must come BEFORE the catch-all so
+# server routes don't fall through to the web reader.
+
+example.com {
+    encode zstd gzip
+
+    # Optional: serve leyline-server (WebSocket sync, REST admin, Tier 3
+    # history, health probes) at /_leyline/* on the same hostname. Comment
+    # out if server lives on a different subdomain.
+    # reverse_proxy /_leyline/* 127.0.0.1:8090
+
+    # leyline-web reader for everything else.
+    reverse_proxy 127.0.0.1:8091
+
+    header {
+        # Caddy adds HSTS automatically when serving HTTPS via ACME.
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    }
+}

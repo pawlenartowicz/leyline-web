@@ -1,0 +1,16 @@
+parent_theme: static_page
+guest_role: view
+
+vault_id: static-page
+vault_home: index.md
+# No header.site_title: the header renders the "Leyline" logotype in the
+# brand face — same across all three example vaults; only the tagline differs.
+vault_tagline: "synced notes"
+
+header:
+  navigation: nav.nav
+  # brand_link: /      # optional; defaults to "/" when unset
+
+footer:
+  license: "CC BY-SA 4.0"
+  copyright: "© 2026 Pawel Lenartowicz"

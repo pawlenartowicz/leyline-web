@@ -1,0 +1,13 @@
+# leyline_base — the root theme that every other theme inherits from. Override
+# files in a child theme rather than editing this directory.
+show_titles: true
+defaults:
+  guest_role: view
+  edit_switch:
+    enabled: false
+  # menu: sidebar nav-tree rendering mode.
+  #   auto    — compact when the tree has more than ~20 leaves, else long
+  #   compact — always collapse groups behind <details>
+  #   long    — always render every group fully expanded
+  # Vaults can override per-vault in their own web.yaml.
+  menu: auto

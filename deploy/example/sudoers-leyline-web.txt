@@ -1,0 +1,15 @@
+# Narrow grants for the leyline-web deploy flow. Reviewed 2026-05-12.
+# Wildcards are sudoers-style globs (match any single path component).
+#
+# BEFORE INSTALLING: substitute `<operator-user>` with the SSH login user
+# that runs scripts/deploy.sh. Adjust the /tmp/leyline-web-* glob if your
+# tempdir differs (e.g., if you run as a user with a custom TMPDIR).
+#
+# Install with:
+#   visudo -f /etc/sudoers.d/leyline-web
+
+# Service control — used by scripts/deploy.sh and ad-hoc debugging.
+<operator-user> ALL=(root) NOPASSWD: /sbin/rc-service leyline-web start, /sbin/rc-service leyline-web stop, /sbin/rc-service leyline-web restart, /sbin/rc-service leyline-web status
+
+# Binary swap — used by scripts/deploy.sh. Source path is /tmp/leyline-web-<pid> only.
+<operator-user> ALL=(root) NOPASSWD: /usr/bin/install -b -m 0755 -o leyline -g leyline /tmp/leyline-web-* /opt/leyline-web/bin/leyline-web

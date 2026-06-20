@@ -1,0 +1,16 @@
+# Webignore — three sections control what leyline-web exposes, pins to
+# the working tree across versions, and serves with the edit-mode switch.
+
+[view]
+# Paths excluded from web exposure (gitignore syntax).
+# e.g. drafts/   or   *.private.md  — none needed in the Quick Start vault.
+
+[history-ignore]
+# Paths served from the filesystem regardless of selected version.
+# .leyline/ is system-enforced — leave as-is.
+.leyline/
+
+[edit-ignore]
+# Paths where the edit-mode switch is suppressed.
+# .leyline/ is system-enforced — leave as-is.
+.leyline/

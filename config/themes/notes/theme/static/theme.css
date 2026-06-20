@@ -1,0 +1,7 @@
+/* notes theme — adds only what differs from leyline_base.
+   The shared sidebar nav-tree styles (.nav-tree, .nav-children, .nav-item,
+   .nav-summary, etc.) now live in leyline_base/theme.css so every
+   nav-tree-driven theme (notes, documentation) gets them by default. */
+
+.page-header h1 { margin-top: 0; }
+.vault-landing h1 { font-size: 1.5em; margin-top: 0; }

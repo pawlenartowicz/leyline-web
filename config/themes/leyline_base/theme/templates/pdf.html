@@ -1,0 +1,24 @@
+{{define "main"}}
+  <header class="page-header pdf-page-header">
+    <h1>{{.Title}}</h1>
+  </header>
+  <section class="page-body pdf-page-body">
+    {{if eq .PDF.Mode "browser"}}
+      <iframe class="leyline-pdf-fallback"
+              src="{{.PDF.RawURL}}"
+              title="{{.Title}}"
+              loading="lazy"></iframe>
+    {{else}}
+      <div class="leyline-pdf-frame">
+        <div class="leyline-pdf-host"
+             data-pdf-meta="{{.PDF.MetaURL}}"
+             data-pdf-raw="{{.PDF.RawURL}}">
+          <p class="pdf-loading">Loading PDF…</p>
+        </div>
+      </div>
+    {{end}}
+  </section>
+  {{if ne .PDF.Mode "browser"}}
+  <script type="module" src="{{.Vault.BasePath}}_theme/leyline_base/pdf-viewer.mjs"></script>
+  {{end}}
+{{end}}

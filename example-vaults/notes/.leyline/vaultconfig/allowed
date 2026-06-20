@@ -1,0 +1,46 @@
+# .leyline/allowed — file types accepted by this vault
+# Whitelist: only listed extensions are accepted for sync
+# Edit this file to control what the server accepts
+
+[sync]
+# Text documents
+*.md
+*.rmd
+*.txt
+*.csv
+*.json
+*.yaml
+*.yml
+*.html
+*.css
+*.canvas
+*.svg
+
+# Images + PDFs (sync but no git history)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.pdf
+
+[history]
+# Subset of [sync] — line-based text formats that get git history
+# Must also be in [sync] to matter
+*.md
+*.rmd
+*.txt
+*.csv
+*.json
+*.yaml
+*.yml
+*.html
+*.css
+*.canvas
+*.svg
+
+[limits]
+# Maximum file sizes per tier
+# Supported units: kb, mb, gb (case-insensitive)
+sync = 10mb
+history = 1mb

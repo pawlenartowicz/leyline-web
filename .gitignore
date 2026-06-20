@@ -1,0 +1,10 @@
+# Local artefacts
+*.log
+*.swp
+.DS_Store
+
+# Operator-local host overrides — see test-deploy/README.md.
+/test-deploy/
+
+# Build output — the binary is built from the sibling `leyline` repo (cmd/leyline-web); we just consume it.
+/leyline-web

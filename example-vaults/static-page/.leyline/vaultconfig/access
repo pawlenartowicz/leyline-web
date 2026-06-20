@@ -1,0 +1,9 @@
+# .leyline/vaultconfig/access — vault identity and roles
+# name	role	hash	generated	last_seen	expires_at	email
+# Hashes below are placeholder zero-hashes — unusable until rewritten by
+# integration test setup. Live demos (`make web-preview`) do not
+# authenticate, so the inert hashes don't matter there.
+admin	admin	000000000000000000000000	2026-05-11T00:00:00Z	-	-	-
+alice-editor	editor	000000000000000000000000	2026-05-11T00:00:00Z	-	-	-
+bob-editor	editor	000000000000000000000000	2026-05-11T00:00:00Z	-	-	-
+reader	reader	000000000000000000000000	2026-05-11T00:00:00Z	-	-	-

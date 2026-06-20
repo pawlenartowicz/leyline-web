@@ -1,0 +1,12 @@
+{{define "main"}}
+  {{template "edit_switch.html" .}}
+  <section class="vault-landing">
+    {{if .Content}}
+      {{.Content}}
+    {{else}}
+      <h1>{{if .Theme.Defaults.VaultName}}{{.Theme.Defaults.VaultName}}{{else}}<span class="brand-name--default">Leyline</span>{{end}}</h1>
+      <hr>
+      <p>This vault has no <code>index.md</code> or <code>README.md</code>.</p>
+    {{end}}
+  </section>
+{{end}}

@@ -1,0 +1,13 @@
+# notes — sidebar-driven theme for a small editable knowledge base.
+# Versioning is off; the edit-mode switch is exposed but defaults off
+# so vault owners can flip it on without hunting through theme files.
+parent_theme: leyline_base
+versions:
+  switcher: false             # versions hidden — flip a vault's web.yaml to opt in
+defaults:
+  guest_role: view
+  edit_switch:
+    enabled: false   # set true (here or in a vault's web.yaml) to expose the edit switch
+  # Left rail shows the auto-generated navigation tree. Vaults (or pages via
+  # frontmatter) can override with a widget stack, or body / none / references.
+  left_sidebar: [navigation]

@@ -1,0 +1,32 @@
+{{/* Inline auth chrome. Embedded by header.html / footer.html when
+     .Theme.Defaults.Auth.LoginButton selects that placement. Renders nothing
+     when the login route is disabled at the server level. */}}
+{{with .Auth}}{{if .LoginPath}}
+<div class="auth-panel">
+  {{if .LoggedIn}}
+    <details class="auth-panel__details">
+      <summary class="auth-panel__summary">
+        <span class="auth-panel__dot" aria-hidden="true"></span>
+        <span class="auth-panel__name">{{.Name}}</span>
+      </summary>
+      <div class="auth-panel__body">
+        {{range .VaultRoles}}
+          <div class="auth-panel__row">
+            <span class="auth-panel__vault">{{.Vault}}</span>
+            <span class="auth-panel__role">{{.Role}}</span>
+            <form method="post" action="{{$.Auth.LogoutPath}}" class="auth-panel__inline-form">
+              <input type="hidden" name="vault" value="{{.Vault}}">
+              <button type="submit" class="auth-panel__icon-btn" title="Sign out of {{.Vault}}">×</button>
+            </form>
+          </div>
+        {{end}}
+        <form method="post" action="{{.LogoutPath}}" class="auth-panel__form">
+          <button type="submit" class="auth-panel__btn">Log out of all</button>
+        </form>
+      </div>
+    </details>
+  {{else}}
+    <a class="auth-panel__login" href="{{.LoginPath}}?return={{$.URL}}">Log in</a>
+  {{end}}
+</div>
+{{end}}{{end}}

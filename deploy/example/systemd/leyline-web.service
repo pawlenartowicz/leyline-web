@@ -1,0 +1,33 @@
+[Unit]
+Description=leyline-web — read-only web view for Obsidian vaults
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=leyline
+Group=leyline
+WorkingDirectory=/opt/leyline-web
+ExecStart=/opt/leyline-web/bin/leyline-web -config /opt/leyline-web/config/config.yaml
+Restart=on-failure
+RestartSec=2
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+# PDF + search caches → /var/cache/leyline-web/{pdf,search} (engine derives them
+# from XDG_CACHE_HOME; CacheDirectory= keeps the tree writable under
+# ProtectSystem=strict and owned by leyline:leyline). Logs go to the journal.
+CacheDirectory=leyline-web
+Environment=XDG_CACHE_HOME=/var/cache
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+MemoryDenyWriteExecute=true
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

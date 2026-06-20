@@ -1,0 +1,27 @@
+# Curated left-sidebar for the "Quick start" (notes) vault.
+#
+# Replaces the auto [navigation] tree (which sorts alphabetically by title and
+# so ignores the 1-/2-/3- section prefixes) with the intended reading order.
+# Format mirrors nav.nav:  "Label" : "target"   (children prefixed with `-`,
+# depth 1). Targets are vault-relative; each section links to its index page.
+#
+# Maintained by hand: a new page must be added here to appear in the sidebar.
+
+"Quick start" : "@notes/"
+
+"What is Leyline?" : "1-what-is-leyline"
+   - "Plain files, your editor of choice" : "1-what-is-leyline/interoperability"
+   - "Real-time sync"                     : "1-what-is-leyline/live-sync"
+   - "Also a website"                     : "1-what-is-leyline/web-preview"
+
+"Features" : "2-features"
+   - "Markdown rendering"     : "2-features/markdown"
+   - "Themes"                 : "2-features/themes"
+   - "History and tagging"    : "2-features/history-and-tagging"
+   - "Editing in the browser" : "2-features/editing-online"
+   - "LaTeX and Typst"        : "2-features/latex-and-typst"
+
+"How to run it" : "3-how-to-run-it"
+   - "Install and run"          : "3-how-to-run-it/install-and-run"
+   - "Connect your first vault" : "3-how-to-run-it/first-vault"
+   - "Lightweight by design"    : "3-how-to-run-it/lightweight-server"

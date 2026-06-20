@@ -1,0 +1,44 @@
+{{/* Renders the per-page version switcher as a single-button popover when
+     the active vault has `versions.switcher: true`. Themes overriding this
+     partial keep the same contract on .Version:
+       .Switcher           bool       — gate; render nothing when false
+       .CurrentTag         string     — selected entry (tag name or "head")
+       .CurrentPath        string     — intra-vault path for URL construction
+       .AvailableVersions  []entry    — ordered rows, newest-first
+       .RequestedTag       string     — set on 404; absent otherwise
+       .RequestedPath      string     — set on 404; absent otherwise
+
+     Each entry has .Name, .Label, .URL, .Marker, .Selected. Marker is one
+     of "default", "changed_here", "not_yet", "deleted" — themes can style
+     entries via the data-marker attribute. Native <details>/<summary>
+     handles the open/close, so the partial ships zero JS and stays
+     CSP-clean.
+*/}}
+{{if .Version.Switcher}}
+<details class="version-switcher">
+  <summary>
+    <span class="vs-current">
+      {{- range .Version.AvailableVersions -}}
+        {{- if .Selected}}{{.Label}}{{end -}}
+      {{- end -}}
+    </span>
+    <span class="vs-caret" aria-hidden="true">▾</span>
+  </summary>
+  <ul class="vs-menu" role="menu">
+    {{range .Version.AvailableVersions}}
+    <li role="none">
+      <a role="menuitem"
+         href="{{.URL}}"
+         class="vs-item{{if .Selected}} is-current{{end}}"
+         data-marker="{{.Marker}}"
+         data-name="{{.Name}}">
+        <span class="vs-label">{{.Label}}</span>
+        {{- if eq .Marker "changed_here"}}<span class="vs-marker" title="changed since this tag">•</span>{{end -}}
+        {{- if eq .Marker "not_yet"}}<span class="vs-marker">(not yet)</span>{{end -}}
+        {{- if eq .Marker "deleted"}}<span class="vs-marker">(gone)</span>{{end -}}
+      </a>
+    </li>
+    {{end}}
+  </ul>
+</details>
+{{end}}

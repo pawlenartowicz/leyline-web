@@ -1,0 +1,6 @@
+id,name,role,joined,active
+1,Alice Nowak,admin,2024-03-12,true
+2,Bartek Kowalski,editor,2024-07-01,true
+3,Cecylia Zielinska,reader,2025-01-22,false
+4,Damian Wisniewski,editor,2025-04-08,true
+5,Ewa Lis,reader,2025-09-30,true

@@ -1,0 +1,5 @@
+{{define "main"}}
+  {{template "edit_switch.html" .}}
+  {{if .Theme.Defaults.ShowTitles}}<header class="page-header"><h1>{{.Title}}</h1></header>{{end}}
+  <section class="vault-index">{{.Content}}</section>
+{{end}}

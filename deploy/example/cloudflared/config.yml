@@ -1,0 +1,36 @@
+# cloudflared ingress — example tunnel in front of leyline-web (and
+# optionally leyline-server) for hosts that CANNOT open public ports
+# (NAT'd home servers, port-restricted/container VPS tiers, etc.).
+#
+# This is the ALTERNATIVE to the reverse-proxy path (caddy/, nginx/): a
+# Cloudflare Tunnel carries HTTPS *and* WebSockets outbound-only, needs no
+# inbound ports, and manages certs at the edge — so there is no ACME step
+# and no reverse proxy. If your VPS has a public IP and can listen on
+# 80/443, prefer caddy/ or nginx/ instead; you do not need a tunnel.
+#
+# Prereqs (run on the box, one-time — see Cloudflare's "Tunnel" docs):
+#   cloudflared tunnel login
+#   cloudflared tunnel create <tunnel-name>
+#   cloudflared tunnel route dns <tunnel-name> example.com
+# Then point this file's `tunnel`/`credentials-file` at what those created
+# and run `cloudflared tunnel run <tunnel-name>` (a systemd unit alongside
+# leyline-web is the production form).
+
+tunnel: <your-tunnel-name-or-id>
+credentials-file: /etc/cloudflared/<tunnel-id>.json
+
+# Ordered match — first hostname that matches wins; the trailing 404 is the
+# required catch-all. leyline-web serves plain HTTP on its loopback port.
+ingress:
+  # leyline-web reader.
+  - hostname: example.com
+    service: http://127.0.0.1:8091
+
+  # Optional: leyline-server (WebSocket sync, REST admin, Tier 3 history,
+  # /publish, health probes). Drop this block if the server is not exposed
+  # or lives elsewhere. WebSockets pass through the tunnel unchanged.
+  - hostname: api.example.com
+    service: http://127.0.0.1:8090
+
+  # Required catch-all.
+  - service: http_status:404

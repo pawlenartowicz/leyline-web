@@ -1,0 +1,61 @@
+# leyline-web — committed demo configuration.
+#
+# This file is the default that ships with the repo. Running
+#   ./leyline-web -config config/config.yaml
+# from the leyline-web root will serve the bundled example vault on
+# http://127.0.0.1:8091/.
+#
+# BEFORE DEPLOYING IN PRODUCTION
+# ------------------------------
+#   - Set dev_mode: false. Theme edits will then require a binary
+#     restart; content edits to the vault are always live.
+#   - Replace the `vaults:` map with your own vault paths (absolute or
+#     relative to this file's directory).
+#   - Set `domain` to your real hostname.
+#   - Bind `listen` to the interface your reverse proxy expects.
+
+# Public hostname (informational; used in absolute-URL contexts).
+domain: localhost
+
+# Listen address. Use 127.0.0.1:8091 if you put a reverse proxy in front.
+listen: "127.0.0.1:8091"
+
+# Hot-reload theme files in config/themes/. Demo default is true so
+# theme edits show up without a restart. Set to false in production.
+dev_mode: true
+
+# Reserved for Phase 2b/2c (admin API). Leave empty in Phase 1.
+leyline_server: ""
+
+# Theme used when a vault's .leyline/vaultconfig/web.yaml does not
+# declare parent_theme.
+default_theme: notes
+
+# PDFs are server-rasterized via poppler (pdftocairo + pdftotext) into
+# per-page PNGs with a transparent text-selection overlay. Cache lives
+# under $XDG_CACHE_HOME/leyline-web/pdf/ by default; override with the
+# LEYLINE_WEB_PDF_CACHE_DIR / LEYLINE_WEB_PDF_DPI env vars. To switch a
+# vault to the browser-native viewer instead, set `pdf_renderer: browser`
+# in that vault's .leyline/vaultconfig/web.yaml.
+
+# Extensions served as text-as-<pre> by the engine dispatcher. Markdown
+# (.md) and the image set (.png, .jpg, .jpeg, .gif, .webp, .svg) are
+# always handled by built-in renderers and need not be listed here.
+# Anything else 404s.
+text_extensions:
+  - .tex
+  - .py
+  - .json
+  - .yaml
+  - .yml
+  - .txt
+  - .csv
+
+# URL-prefix → vault filesystem path. Relative paths resolve against
+# this file's directory. The three example vaults sit at the repo root
+# under `example-vaults/` so they're easy to discover; copy any of them
+# as a starting point for your own deploy.
+vaults:
+  "/":                ../example-vaults/static-page    # uses static_page theme
+  "/notes":           ../example-vaults/notes          # uses notes theme — quick start
+  "/documentation":   ../example-vaults/documentation  # notes theme, docs mode (versions opt-in in the vault's web.yaml)

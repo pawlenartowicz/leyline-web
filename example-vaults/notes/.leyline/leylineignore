@@ -1,0 +1,9 @@
+# Client-side ignore patterns — never synced to the server.
+# Matches gitignore semantics.
+
+# Admin key — managed out-of-band per the vault-bootstrap script.
+# Local copy has placeholder rows for `make web-preview`; never sync.
+.leyline/vaultconfig/access
+
+*.tmp
+.DS_Store

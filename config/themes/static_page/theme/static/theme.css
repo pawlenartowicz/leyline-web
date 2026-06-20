@@ -1,0 +1,188 @@
+/* static_page — landing layer over leyline_base.
+
+   Adds the home-page hero and its supporting sections; everything else
+   (tokens, header, footer, the printer's-rule <hr>, both light/dark themes,
+   the self-hosted fonts) comes from leyline_base, which loads first in the
+   CSS chain. Selectors are scoped to .vault-index (the index.html content
+   slot) so they never touch ordinary article pages.
+
+   Composition: an editorial, left-aligned hero with the Horizon mark drawn
+   large in the right-hand negative space — three staggered hairlines, one
+   node settling onto the middle line. Supporting copy reads as manuscript
+   marginalia. Deliberately light: no section rules at all — whitespace
+   alone divides the page.
+
+   Brand rules honoured (docs/style.md §3/§4/§6): hairlines not boxes, no
+   shadows; the oxblood accent appears only in link text, never as a solid
+   fill; the field is monochromatic (lines in --color-text-muted, node in
+   --color-text, never recoloured to the accent); the headline uses
+   --font-body, not the logotype face; no fifth font, no new colour token. */
+
+/* ---- Single-column layout ------------------------------------------
+   static_page is chrome-light: header nav only, no sidebar rails. leyline_base
+   builds its main layout around rail widgets and does not lay a rail-less,
+   single-column page out at full width, so lay main out as a plain centered
+   block here. Ordinary pages keep a reading column; the landing (.vault-index)
+   runs the full page canvas so the hero field can span it. (This is the
+   home-layout concern the removed engine `layout: hero` knob used to cover.) */
+main { display: block; max-width: var(--max-page-width); }
+main > article { max-width: var(--max-content-width); margin-inline: auto; }
+main:has(.vault-index) > article { max-width: none; }
+
+/* ---- Hero ---------------------------------------------------------- */
+.vault-index .hero {
+  position: relative;
+  margin-top: var(--space-3);
+  padding: clamp(3.5rem, 13vh, 8rem) 0 clamp(3rem, 9vh, 5.5rem);
+  overflow: hidden;
+}
+
+/* The field: the Horizon mark (docs/media/logo-mark.svg) redrawn at page
+   scale in the right-hand negative space — three staggered lines with a
+   single node on the middle line. Drawn as positioned spans, not the SVG,
+   so stroke weight is our own knob: --stroke scales with the viewport like
+   a real SVG stroke would (1px hairlines were invisible at this size), and
+   the node keeps the mark's proportion (diameter ≈ 2.5× stroke, as 3.7/1.5
+   in the source SVG). Lines in muted text tone — --color-border didn't
+   survive the cream background. Percentages map the mark's 24×24 geometry:
+   lines y8/12/16 → top 0/50/100%, x-extents 4–15 / 4–20 / 9–20, node at
+   (16,12). Contained on the right so no line crosses the copy. */
+.vault-index .hero-field {
+  --stroke: clamp(2.5px, 0.35vw, 5px);
+  position: absolute; z-index: 0; pointer-events: none;
+  top: 50%; right: 0;
+  width: clamp(16rem, 34vw, 24rem);
+  height: clamp(6.5rem, 11vw, 9rem);
+  transform: translateY(-50%);
+}
+.vault-index .hero-field .line {
+  position: absolute; height: var(--stroke);
+  margin-top: calc(var(--stroke) / -2);
+  background: var(--color-text-muted);
+  transform-origin: left center;
+}
+.vault-index .hero-field .l1 { top: 0;    left: 0;      width: 68.75%; }
+.vault-index .hero-field .l2 { top: 50%;  left: 0;      width: 100%; }
+.vault-index .hero-field .l3 { top: 100%; left: 31.25%; width: 68.75%; }
+.vault-index .hero-field .node {
+  position: absolute; left: 75%; top: 50%;
+  width: calc(var(--stroke) * 2.5); height: calc(var(--stroke) * 2.5);
+  margin: calc(var(--stroke) * -1.25) 0 0 calc(var(--stroke) * -1.25);
+  border-radius: 50%; background: var(--color-text);
+}
+
+.vault-index .hero-copy { position: relative; z-index: 1; max-width: 34rem; }
+.vault-index .hero-title {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: clamp(2.2rem, 5.5vw, 3.4rem);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  margin: 0 0 0.6em;
+}
+.vault-index .hero-lede {
+  font-family: var(--font-ui);
+  color: var(--color-text-muted);
+  font-size: clamp(1.02rem, 1.5vw, 1.2rem);
+  line-height: 1.55;
+  max-width: 44ch;
+  margin: 0 0 2rem;
+}
+
+/* CTAs: quiet text links, no box. Underline grows from the left on hover;
+   the arrow drifts right. Accent via link colour only. */
+.vault-index .hero-cta { display: flex; flex-wrap: wrap; gap: 1.4rem 2.2rem; align-items: baseline; }
+.vault-index .cta {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+  color: var(--color-text);
+  text-decoration: none;
+  position: relative;
+  padding-bottom: 2px;
+}
+.vault-index .cta::after {
+  content: "";
+  position: absolute; left: 0; bottom: 0;
+  width: 100%; height: 1px;
+  background: currentColor;
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.18s ease;
+}
+.vault-index .cta:hover { text-decoration: none; }
+.vault-index .cta:hover::after { transform: scaleX(1); }
+.vault-index .cta .arrow { display: inline-block; margin-left: 0.4em; transition: transform 0.18s ease; }
+.vault-index .cta:hover .arrow { transform: translateX(3px); }
+.vault-index .cta-primary { color: var(--color-link); }
+.vault-index .cta-primary:hover { color: var(--color-link-hover); }
+
+.vault-index code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--color-code-bg);
+  padding: 0.05em 0.35em;
+  border-radius: 2px;
+}
+
+/* ---- Stanzas: manuscript marginalia. Section label in a narrow left
+   column, body to the right; whitespace alone separates entries — no
+   hairlines, no asterisms. Closes the page, so it carries bottom air. ---- */
+.vault-index .stanzas { max-width: 50rem; margin: var(--space-4) auto; padding-bottom: var(--space-4); }
+.vault-index .stanza {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-1);
+  padding: var(--space-3) 0;
+}
+.vault-index .stanza h2 {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text);
+  margin: 0;
+}
+.vault-index .stanza p {
+  font-family: var(--font-ui);
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  line-height: 1.55;
+  margin: 0;
+}
+@media (min-width: 40rem) {
+  .vault-index .stanza {
+    grid-template-columns: 10rem 1fr;
+    gap: var(--space-4);
+    align-items: baseline;
+  }
+}
+
+/* ---- Mobile: stack the copy full width and drop the mark entirely — no
+   right-hand negative space for it to live in. ---- */
+@media (max-width: 52rem) {
+  .vault-index .hero-field { display: none; }
+  .vault-index .hero-copy { max-width: none; }
+}
+
+/* ---- One quiet load-in: the three lines draw, the node settles onto the
+   middle line, copy rises. Stilled under reduced-motion — the resolved state
+   above is the default outside the guard, so those readers see the finished
+   layout. ---- */
+@media (prefers-reduced-motion: no-preference) {
+  .vault-index .hero-field .line { transform: scaleX(0); animation: sp-draw 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
+  .vault-index .hero-field .l1 { animation-delay: 0.05s; }
+  .vault-index .hero-field .l2 { animation-delay: 0.15s; }
+  .vault-index .hero-field .l3 { animation-delay: 0.25s; }
+  .vault-index .hero-field .node { opacity: 0; --from: -70px; animation: sp-node 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) 0.6s forwards; }
+  .vault-index .hero-title,
+  .vault-index .hero-lede,
+  .vault-index .hero-cta { opacity: 0; transform: translateY(0.5rem); animation: sp-rise 0.7s ease forwards; }
+  .vault-index .hero-title { animation-delay: 0.25s; }
+  .vault-index .hero-lede { animation-delay: 0.38s; }
+  .vault-index .hero-cta { animation-delay: 0.50s; }
+}
+@keyframes sp-draw { to { transform: scaleX(1); } }
+@keyframes sp-node { from { opacity: 0; transform: translateX(var(--from, 0)); } to { opacity: 1; transform: translateX(0); } }
+@keyframes sp-rise { to { opacity: 1; transform: none; } }

@@ -1,0 +1,23 @@
+# static_page — "personal site" / landing theme. Chrome-light: header nav only,
+# no sidebar rails. leyline_base builds its main layout around rail widgets and
+# does not lay a rail-less single-column page out at full width, so this theme's
+# static/theme.css lays `main` out as a plain centered block — ordinary pages
+# keep a reading column, the landing (.vault-index) runs full-width to
+# --max-page-width. (This is the home-layout concern the removed engine
+# `layout: hero` knob covered; leyline_base hides the sidebar toggle whenever no
+# left-rail widgets exist, so there is no dead drawer control.) show_titles
+# stays off so the engine adds no auto H1 — the vault writes its own headings
+# (and, on the landing, a raw-HTML hero) in index.md.
+#
+# The landing hero + supporting sections are styled by this theme's
+# static/theme.css layer (.vault-index selectors), which loads after
+# leyline_base in the CSS chain.
+#
+# Vaults using this theme typically declare in .leyline/vaultconfig/web.yaml:
+#   vault_name, vault_home, header.navigation, footer.copyright.
+parent_theme: leyline_base
+show_titles: false
+versions:
+  switcher: false             # no rail → switcher has no home
+defaults:
+  guest_role: view

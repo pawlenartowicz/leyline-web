@@ -1,0 +1,98 @@
+{{define "nav-list"}}
+  {{- /* dot is a {Node *render.NavNode, Cur string, Compact bool} dict.
+         In compact mode, directory nodes with children wrap in <details>;
+         the `open` attribute is set when this node is the active page or
+         an ancestor of it, so only the current branch is expanded.
+         In long mode, every group renders as a plain <ul> with no
+         disclosure affordance. PageContext.MenuCompact picks the mode. */ -}}
+  {{- $n := .Node -}}
+  {{- $cur := .Cur -}}
+  {{- $compact := .Compact -}}
+  {{- $isActive := $n.IsActive $cur -}}
+  {{- $isAncestor := $n.IsAncestor $cur -}}
+  <li class="nav-item{{if $n.IsDir}} nav-dir{{end}}{{if $isActive}} is-active{{end}}{{if $isAncestor}} is-open{{end}}">
+    {{- if and $n.Children $compact -}}
+      <details class="nav-group"{{if or $isAncestor ($n.ContainsActive $cur)}} open{{end}}>
+        <summary class="nav-summary">
+          {{- if $n.URL -}}
+            <a href="{{$n.URL}}">{{$n.Title}}</a>
+          {{- else -}}
+            <span class="nav-group-label">{{$n.Title}}</span>
+          {{- end -}}
+        </summary>
+        <ul class="nav-children">
+          {{range $n.Children}}{{template "nav-list" (dict "Node" . "Cur" $cur "Compact" $compact)}}{{end}}
+        </ul>
+      </details>
+    {{- else if $n.Children -}}
+      {{- if $n.URL -}}
+        <a href="{{$n.URL}}">{{$n.Title}}</a>
+      {{- else -}}
+        <span class="nav-group-label">{{$n.Title}}</span>
+      {{- end -}}
+      <ul class="nav-children">
+        {{range $n.Children}}{{template "nav-list" (dict "Node" . "Cur" $cur "Compact" $compact)}}{{end}}
+      </ul>
+    {{- else -}}
+      {{- if $n.URL -}}
+        <a href="{{$n.URL}}">{{$n.Title}}</a>
+      {{- else -}}
+        <span class="nav-group-label">{{$n.Title}}</span>
+      {{- end -}}
+    {{- end -}}
+  </li>
+{{end}}
+
+{{define "toc-list"}}
+  {{- /* dot is a []render.TOCEntry. Level is 2 or 3; the toc-l{N} class lets
+         the theme indent h3 entries under their h2. */ -}}
+  <ul class="toc-list">
+    {{range .}}<li class="toc-item toc-l{{.Level}}"><a href="#{{.ID}}">{{.Text}}</a></li>{{end}}
+  </ul>
+{{end}}
+
+{{define "sidebar-rail"}}
+  {{- /* dot is a {Side string, Rail server.SidebarRender, Page PageContext}
+         dict. Renders one rail's widget stack. The version switcher and the
+         vault-root home link belong to the primary (left) navigation, so they
+         only appear there. */ -}}
+  {{- $side := .Side -}}
+  {{- $rail := .Rail -}}
+  {{- $page := .Page -}}
+  <aside id="sidebar-{{$side}}" class="sidebar sidebar-{{$side}}">
+    {{- if eq $side "left"}}{{template "version_switcher.html" $page}}{{end}}
+    {{range $rail.Widgets}}
+      {{- if eq .Kind "navigation"}}
+      <nav class="widget widget-nav" aria-label="Navigation">
+        <a class="nav-root{{if not $page.Theme.Defaults.VaultName}} nav-root--default{{end}}{{if eq $page.Path ""}} is-active{{end}}"
+           href="{{$page.Vault.Prefix}}">
+          {{- if $page.Theme.Defaults.VaultName}}{{$page.Theme.Defaults.VaultName}}{{else}}Leyline{{end -}}
+        </a>
+        {{if .Nav}}<ul class="nav-tree">{{range .Nav}}{{template "nav-list" (dict "Node" . "Cur" $page.Path "Compact" $page.MenuCompact)}}{{end}}</ul>{{end}}
+      </nav>
+      {{- else if eq .Kind "nav"}}
+      <nav class="widget widget-nav widget-nav-file" aria-label="Navigation">
+        {{if .Title}}<div class="widget-title">{{.Title}}</div>{{end}}
+        {{- /* Curated .nav nodes carry a URL, not a source path, so match the
+               active page by $page.URL (as the header nav does), not $page.Path. */ -}}
+        {{if .Nav}}<ul class="nav-tree">{{range .Nav}}{{template "nav-list" (dict "Node" . "Cur" $page.URL "Compact" $page.MenuCompact)}}{{end}}</ul>{{end}}
+      </nav>
+      {{- else if eq .Kind "table_of_content"}}
+      <nav class="widget widget-toc" aria-label="On this page">
+        <div class="widget-title">{{or .Title "On this page"}}</div>
+        {{template "toc-list" .TOC}}
+      </nav>
+      {{- else if eq .Kind "html"}}
+      <div class="widget widget-html">
+        {{if .Title}}<div class="widget-title">{{.Title}}</div>{{end}}
+        {{.HTML}}
+      </div>
+      {{- else if eq .Kind "search_field"}}
+      <button class="widget widget-search search-trigger" type="button" data-search-url="{{.SearchURL}}"{{if .MinQueryLen}} data-min-query-len="{{.MinQueryLen}}"{{end}} aria-haspopup="dialog">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <span class="search-trigger__label">Search</span>
+      </button>
+      {{- end}}
+    {{end}}
+  </aside>
+{{end}}

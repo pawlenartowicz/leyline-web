@@ -1,0 +1,9 @@
+{{define "main"}}
+  {{template "edit_switch.html" .}}
+  {{if .Theme.Defaults.ShowTitles}}<header class="page-header"><h1>{{.Title}}</h1></header>{{end}}
+  <section class="page-body">{{.Content}}</section>
+  {{/* The viewer is a no-op on pages without a .leyline-pdf-host, so we
+       load it unconditionally rather than threading a "has-pdf-embed"
+       flag through the render context. */}}
+  <script type="module" src="{{.Vault.BasePath}}_theme/leyline_base/pdf-viewer.mjs"></script>
+{{end}}
