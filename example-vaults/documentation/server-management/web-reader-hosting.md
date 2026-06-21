@@ -13,8 +13,9 @@ The web reader is optional. If you don't need a public web view of vault content
 The recommended workflow is to fork the [`web`](https://github.com/pawlenartowicz/leyline-web) repository, which ships themes, example config, and deploy stubs. The engine binary (`leyline-web`) comes from `leyline-web-source`.
 
 ```sh
-git clone --branch v0.2.0 https://github.com/pawlenartowicz/leyline-web my-site   # match your leyline-web engine minor (0.2.*)
+git clone https://github.com/pawlenartowicz/leyline-web my-site
 cd my-site
+git checkout "$(git tag -l 'v0.2.*' | sort -V | tail -1)"   # latest 0.2.* — match your leyline-web engine minor
 make build        # builds leyline-web binary from ../web-source
 ```
 

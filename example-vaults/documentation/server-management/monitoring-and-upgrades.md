@@ -80,7 +80,19 @@ Set `LEYLINE_ACCESS_LOG=off` to suppress per-request access records (useful when
 
 ## In-place upgrade
 
-The server does not perform rolling upgrades. The safe upgrade procedure is:
+The server does not perform rolling upgrades — stop it, replace it, start it. Stay within the minor (`0.2.*`); crossing to `0.3` carries no compatibility guarantee.
+
+**Package install (recommended).** If you installed from a `.deb`/`.rpm`/`.apk`, upgrade with the package manager — it replaces both `leyline-server` and `leyline-admin` and leaves the systemd unit in place:
+
+```sh
+VER=0.2.1            # the release you're upgrading to (stay within 0.2.*)
+cd /tmp && curl -fsSL -O "https://github.com/pawlenartowicz/leyline/releases/download/v${VER}/leyline-server_${VER}_amd64.deb"
+sudo apt install ./leyline-server_${VER}_amd64.deb         # Fedora/RHEL: dnf install ./…_amd64.rpm · Alpine: apk add --allow-untrusted ./…_amd64.apk
+sudo systemctl restart leyline-server
+journalctl -u leyline-server -f                            # watch the first 30–60s
+```
+
+**Source / tarball install (manual binary swap).** The step-by-step form:
 
 1. **Stop the service.** Connected clients will disconnect and retry.
    ```sh
@@ -152,9 +164,32 @@ Run `smoketest` after every upgrade and after any change to reverse-proxy config
 
 `leyline-web` upgrades follow the same stop/replace/start pattern. No WAL or vault state is held in memory between requests; the process can be stopped at any time without data loss.
 
+**Two parts must move together: the engine binary *and* every instance's theme clone.** The engine and the `web` theme template share a versioned contract — a newer engine against an older clone fails to render (e.g. a template field the old theme lacks). Keep both on the same minor: bump the binary, then check the clone out to the matching tag.
+
+**Package install (recommended).** Replace `INST` with your instance name (the directory under `/opt/leyline-web/`):
+
 ```sh
-systemctl stop leyline-web
+VER=0.2.1            # the release you're upgrading to (stay within 0.2.*)
+INST=mysite          # your instance — the dir under /opt/leyline-web/
+
+cd /tmp && curl -fsSL -O "https://github.com/pawlenartowicz/leyline/releases/download/v${VER}/leyline-web_${VER}_amd64.deb"
+sudo apt install ./leyline-web_${VER}_amd64.deb           # Fedora/RHEL: dnf · Alpine: apk add --allow-untrusted
+
+# Bring the instance's theme clone to the latest matching tag, then restart it:
+sudo git -C "/opt/leyline-web/$INST" fetch --tags
+sudo git -C "/opt/leyline-web/$INST" checkout "$(git -C /opt/leyline-web/$INST tag -l 'v0.2.*' | sort -V | tail -1)"
+sudo systemctl restart "leyline-web@$INST"
+curl -sf http://127.0.0.1:8091/_health                   # expect 200
+```
+
+**Source / tarball install (manual binary swap):**
+
+```sh
+INST=myinstance
+systemctl stop "leyline-web@$INST"
 install -m 0755 leyline-web-NEW /opt/leyline-web/bin/leyline-web
-systemctl start leyline-web
+git -C "/opt/leyline-web/$INST" fetch --tags
+git -C "/opt/leyline-web/$INST" checkout "$(git -C /opt/leyline-web/$INST tag -l 'v0.2.*' | sort -V | tail -1)"
+systemctl start "leyline-web@$INST"
 curl -sf http://127.0.0.1:8091/_health   # expect 200
 ```
