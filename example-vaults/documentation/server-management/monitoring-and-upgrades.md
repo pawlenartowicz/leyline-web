@@ -85,7 +85,7 @@ The server does not perform rolling upgrades — stop it, replace it, start it. 
 **Package install (recommended).** If you installed from a `.deb`/`.rpm`/`.apk`, upgrade with the package manager — it replaces both `leyline-server` and `leyline-admin` and leaves the systemd unit in place:
 
 ```sh
-VER=0.3.0            # the release you're upgrading to (stay within 0.2.*)
+VER=0.3.1            # the release you're upgrading to (stay within 0.2.*)
 cd /tmp && curl -fsSL -O "https://github.com/pawlenartowicz/leyline/releases/download/v${VER}/leyline-server_${VER}_amd64.deb"
 sudo apt install ./leyline-server_${VER}_amd64.deb         # Fedora/RHEL: dnf install ./…_amd64.rpm · Alpine: apk add --allow-untrusted ./…_amd64.apk
 sudo systemctl restart leyline-server
@@ -169,7 +169,7 @@ Run `smoketest` after every upgrade and after any change to reverse-proxy config
 **Package install (recommended).** Replace `INST` with your instance name (the directory under `/opt/leyline-web/`):
 
 ```sh
-VER=0.3.0            # the release you're upgrading to (stay within 0.2.*)
+VER=0.3.1            # the release you're upgrading to (stay within 0.2.*)
 INST=mysite          # your instance — the dir under /opt/leyline-web/
 
 cd /tmp && curl -fsSL -O "https://github.com/pawlenartowicz/leyline/releases/download/v${VER}/leyline-web_${VER}_amd64.deb"

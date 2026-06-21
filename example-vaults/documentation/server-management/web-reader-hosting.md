@@ -8,22 +8,19 @@ title: Web reader hosting
 
 The web reader is optional. If you don't need a public web view of vault content, skip this section entirely.
 
-## Setup: fork `web`
+## Setup: instances
 
-The recommended workflow is to fork the [`web`](https://github.com/pawlenartowicz/leyline-web) repository, which ships themes, example config, and deploy stubs. The engine binary (`leyline-web`) comes from `leyline-web-source`.
+The `leyline-web` **engine** comes from the `leyline-web` package — installed at `/usr/bin/leyline-web` alongside `leyline-server` (see [[install-and-deploy|Install and deploy]]). The package ships a systemd template, `leyline-web@.service`, but starts nothing: each site is an opt-in **instance**.
 
-```sh
-git clone https://github.com/pawlenartowicz/leyline-web my-site
-cd my-site
-git checkout "$(git tag -l 'v0.2.*' | sort -V | tail -1)"   # latest 0.2.* — match your leyline-web engine minor
-make build        # builds leyline-web binary from ../web-source
-```
-
-Or install the pre-built binary directly:
+An instance is a clone of the [`web`](https://github.com/pawlenartowicz/leyline-web) template repo (themes, example config, deploy stubs) under `/opt/leyline-web/<name>`, run by the unit `leyline-web@<name>`. Match the clone to your installed engine minor:
 
 ```sh
-install -m 0755 leyline-web /opt/leyline-web/bin/leyline-web
+sudo git clone https://github.com/pawlenartowicz/leyline-web /opt/leyline-web/mysite
+sudo git -C /opt/leyline-web/mysite checkout "$(git -C /opt/leyline-web/mysite tag -l 'v0.3.*' | sort -V | tail -1)"   # latest 0.3.* — match your engine minor
+sudo chown -R leyline:leyline /opt/leyline-web/mysite
 ```
+
+Edit `/opt/leyline-web/mysite/config/config.yaml` (next section), then `sudo systemctl enable --now leyline-web@mysite`. To build the engine from source instead of installing the package, see §Manual install from tarballs in [[install-and-deploy|Install and deploy]].
 
 ## `config.yaml` walkthrough
 
@@ -44,8 +41,8 @@ default_theme: notes
 # Map URL prefix → absolute vault path.
 # Relative paths resolve against this file's directory.
 vaults:
-  "/":        /opt/leyline/vaults/main     # root prefix
-  "/archive": /opt/leyline/vaults/archive  # sub-prefix
+  "/":        /var/lib/leyline/vaults/main     # root prefix
+  "/archive": /var/lib/leyline/vaults/archive  # sub-prefix
 
 # File extensions served as syntax-highlighted text.
 # .md, .html, .typ, .csv/.tsv/.psv, and image/SVG/PDF assets are always handled; everything not in that built-in set and not listed in text_extensions 404s.
@@ -77,42 +74,20 @@ Theme knobs that don't require engine changes (colors, font choices, JS feature 
 
 ## systemd unit
 
-```ini
-[Unit]
-Description=leyline-web — read-only web view for Leyline vaults
-After=network-online.target
-Wants=network-online.target
+The `leyline-web` package ships a **template** unit at `/usr/lib/systemd/system/leyline-web@.service` — you don't write it. Enable an instance by name; the `%i` token resolves to the instance directory under `/opt/leyline-web/`:
 
-[Service]
-Type=simple
-User=leyline
-Group=leyline
-WorkingDirectory=/opt/leyline-web
-ExecStart=/opt/leyline-web/bin/leyline-web -config /opt/leyline-web/config/config.yaml
-Restart=on-failure
-RestartSec=2
-
-NoNewPrivileges=true
-PrivateTmp=true
-ProtectSystem=strict
-ProtectHome=true
-ReadWritePaths=/var/log/leyline-web.log
-ProtectKernelTunables=true
-ProtectControlGroups=true
-RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
-LockPersonality=true
-MemoryDenyWriteExecute=true
-SystemCallArchitectures=native
-
-[Install]
-WantedBy=multi-user.target
+```sh
+sudo systemctl enable --now leyline-web@mysite
+journalctl -u leyline-web@mysite -f
 ```
 
-`leyline-web` does not need access to the sync server's UNIX socket or WAL. The `ReadWritePaths=` directive only needs to cover the vault directories (read-only is fine for content) and any PDF cache directory.
+The unit runs as the `leyline` user with `WorkingDirectory=/opt/leyline-web/mysite` and `ExecStart=/usr/bin/leyline-web -config /opt/leyline-web/mysite/config/config.yaml`, under the same hardening profile as the server (`ProtectSystem=strict`, `MemoryDenyWriteExecute`, restricted syscalls and address families). PDF and search caches go to `/var/cache/leyline-web/{pdf,search}` via `CacheDirectory=`. `leyline-web` needs no access to the sync server's socket or WAL and reads vault directories read-only — no extra `ReadWritePaths` beyond that cache. Run independent sites by cloning more instances (`leyline-web@blog`, `leyline-web@docs`, …); each gets its own directory, config, and unit.
+
+To override a directive, use a per-instance drop-in: `sudo systemctl edit leyline-web@mysite`.
 
 ## Reverse proxy
 
-`leyline-web` serves plain HTTP on `127.0.0.1:8091`. Put Caddy or nginx in front for TLS:
+`leyline-web` serves plain HTTP on `127.0.0.1:8091`. Put Caddy or nginx in front for TLS. (If `leyline-server` shares this hostname, use the split-path proxy in [[install-and-deploy|Install and deploy]] §Reverse proxy instead — it routes `/_leyline/*` to the sync server and everything else here.)
 
 **Caddy:**
 ```
@@ -134,7 +109,7 @@ location / {
 }
 ```
 
-Set the `LEYLINE_WEB_TRUST_PROXY_TLS=1` environment variable in the service unit when using a reverse proxy — this tells the reader to emit the `Strict-Transport-Security` header and mark cookies `Secure` even though the binary itself is not serving TLS.
+Set the `LEYLINE_WEB_TRUST_PROXY_TLS=1` environment variable when a reverse proxy terminates TLS — add it via `sudo systemctl edit leyline-web@mysite` (`[Service]` → `Environment=LEYLINE_WEB_TRUST_PROXY_TLS=1`). This tells the reader to emit the `Strict-Transport-Security` header and mark cookies `Secure` even though the binary itself is not serving TLS.
 
 ## Per-user read auth
 
@@ -172,12 +147,12 @@ apt install poppler-utils    # Debian/Ubuntu
 apk add poppler-utils        # Alpine
 ```
 
-Without poppler, PDF requests return `501 Not Implemented`. Per-vault, you can switch to the browser's native PDF viewer by setting `pdf_renderer: browser` in the vault's `.leyline/vaultconfig/web.yaml`. The PDF render cache lives at `$XDG_CACHE_HOME/leyline-web/pdf/` by default; override with `LEYLINE_WEB_PDF_CACHE_DIR`.
+Without poppler, PDF requests return `501 Not Implemented`. Per-vault, you can switch to the browser's native PDF viewer by setting `pdf_renderer: browser` in the vault's `.leyline/vaultconfig/web.yaml`. The PDF render cache lives at `$XDG_CACHE_HOME/leyline-web/pdf/` by default (`/var/cache/leyline-web/pdf/` under the packaged unit); override with `LEYLINE_WEB_PDF_CACHE_DIR`.
 
 ## Checking effective webignore rules
 
 ```sh
-leyline-web rules --effective --config /opt/leyline-web/config/config.yaml
+leyline-web rules --effective --config /opt/leyline-web/mysite/config/config.yaml
 ```
 
 Prints the merged gitignore rule set per section (`view`, `history-ignore`, `edit-ignore`) for every configured vault. Useful to verify that sensitive paths are correctly hidden before making a vault public.

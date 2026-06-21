@@ -24,9 +24,6 @@ listen: "127.0.0.1:8091"
 # theme edits show up without a restart. Set to false in production.
 dev_mode: true
 
-# Reserved for Phase 2b/2c (admin API). Leave empty in Phase 1.
-leyline_server: ""
-
 # Theme used when a vault's .leyline/vaultconfig/web.yaml does not
 # declare parent_theme.
 default_theme: notes
