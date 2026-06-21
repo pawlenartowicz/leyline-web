@@ -15,7 +15,7 @@ these on a small Linux VPS (≈256 MB is plenty).
 
 Leyline ships as native `deb` / `rpm` / `apk` packages — **two** of them: the sync
 server (`leyline-server` + `leyline-admin`) and the web reader (`leyline-web`). Pick
-your distro and copy its block. These are pinned to **v0.2.1**; on arm64 swap
+your distro and copy its block. These are pinned to **v0.3.0**; on arm64 swap
 `amd64` → `arm64`. **Versioning:** keep every Leyline piece on the same minor —
 the `leyline-web` engine, the server, the CLI, and the `web` theme clone (step 3)
 must all be `0.2.*`. A `0.2` engine on `0.1` themes won't render. See the
@@ -25,22 +25,22 @@ full policy.
 **Fedora / RHEL:**
 
 ```sh
-cd /tmp && curl -fsSL -O https://github.com/pawlenartowicz/leyline/releases/download/v0.2.1/leyline-server_0.2.1_amd64.rpm -O https://github.com/pawlenartowicz/leyline/releases/download/v0.2.1/leyline-web_0.2.1_amd64.rpm
-sudo dnf install ./leyline-server_0.2.1_amd64.rpm ./leyline-web_0.2.1_amd64.rpm
+cd /tmp && curl -fsSL -O https://github.com/pawlenartowicz/leyline/releases/download/v0.3.0/leyline-server_0.3.0_amd64.rpm -O https://github.com/pawlenartowicz/leyline/releases/download/v0.3.0/leyline-web_0.3.0_amd64.rpm
+sudo dnf install ./leyline-server_0.3.0_amd64.rpm ./leyline-web_0.3.0_amd64.rpm
 ```
 
 **Debian / Ubuntu:**
 
 ```sh
-cd /tmp && curl -fsSL -O https://github.com/pawlenartowicz/leyline/releases/download/v0.2.1/leyline-server_0.2.1_amd64.deb -O https://github.com/pawlenartowicz/leyline/releases/download/v0.2.1/leyline-web_0.2.1_amd64.deb
-sudo apt install ./leyline-server_0.2.1_amd64.deb ./leyline-web_0.2.1_amd64.deb
+cd /tmp && curl -fsSL -O https://github.com/pawlenartowicz/leyline/releases/download/v0.3.0/leyline-server_0.3.0_amd64.deb -O https://github.com/pawlenartowicz/leyline/releases/download/v0.3.0/leyline-web_0.3.0_amd64.deb
+sudo apt install ./leyline-server_0.3.0_amd64.deb ./leyline-web_0.3.0_amd64.deb
 ```
 
 **Alpine:**
 
 ```sh
-cd /tmp && curl -fsSL -O https://github.com/pawlenartowicz/leyline/releases/download/v0.2.1/leyline-server_0.2.1_amd64.apk -O https://github.com/pawlenartowicz/leyline/releases/download/v0.2.1/leyline-web_0.2.1_amd64.apk
-sudo apk add --allow-untrusted ./leyline-server_0.2.1_amd64.apk ./leyline-web_0.2.1_amd64.apk
+cd /tmp && curl -fsSL -O https://github.com/pawlenartowicz/leyline/releases/download/v0.3.0/leyline-server_0.3.0_amd64.apk -O https://github.com/pawlenartowicz/leyline/releases/download/v0.3.0/leyline-web_0.3.0_amd64.apk
+sudo apk add --allow-untrusted ./leyline-server_0.3.0_amd64.apk ./leyline-web_0.3.0_amd64.apk
 ```
 
 The server package **starts on install** — it's live on `127.0.0.1:8090` under

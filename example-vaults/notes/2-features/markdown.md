@@ -10,7 +10,13 @@ The web reader renders Obsidian-flavored Markdown — the syntax is Obsidian's, 
 
 **Wikilinks** — [[interoperability|jump back to interoperability]].
 
-**Embeds** — `![[image.png|300]]` lifts the size onto the `<img>` tag.
+**Embeds** — `![[image.png|300]]` lifts the size onto the `<img>` tag. Add
+`![[image.png|theme-dark]]` to show an image only in dark (or `theme-light`)
+mode — pair both to swap automatically as you toggle the theme. The diagram
+below is two SVGs, one per mode; toggle the theme and watch it swap:
+
+![[diagram-dark.svg|theme-dark]]
+![[diagram-light.svg|theme-light]]
 
 **Callouts:**
 

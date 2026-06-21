@@ -15,6 +15,7 @@ If you are a vault member who wants to connect a client, see [[../collaboration/
 - [[server-configuration|Server configuration]] — every knob in `server.yaml`, with defaults and consequences.
 - [[leyline-admin-rescue|`leyline-admin` (rescue)]] — the server-box operator CLI: vault lifecycle, bootstrap key recovery, offline `vault list`.
 - [[web-reader-hosting|Web reader hosting]] — running `leyline-web` as a separate process, `config.yaml` walkthrough, auth and theme overview.
+- [[publishing-from-ci|Publishing from CI]] — publish a whole vault from a Git repo on a tag push (GitHub Actions), the overwrite contract, and the publish-then-tag caveat.
 - [[backups-and-recovery|Backups and recovery]] — what to copy, git as the history store, restoring a vault, registry recovery.
 - [[monitoring-and-upgrades|Monitoring and upgrades]] — health endpoints, Prometheus metrics, in-place upgrade flow, smoke test.
 

@@ -20,6 +20,7 @@ Source of truth: [`FEATURES.md`](https://github.com/pawlenartowicz/leyline) in t
 | Block references `![[Link#^id]]` | Implemented | |
 | Block IDs `^id` | Implemented | |
 | Image sizing `![[img.png\|300]]`, `![[img.png\|300x200]]` | Implemented | Also handles `![[img.png\|caption\|300]]` and standard markdown form `![alt\|300](url)`. Size tokens lifted onto `<img width= height=>`. |
+| Theme-conditional images `![[img.png\|theme-dark]]` | Implemented | Leyline-web only. A `theme-dark` / `theme-light` segment (case-insensitive, any order with the size token) shows the image only in that light/dark mode — both variants present ⇒ swap on toggle, one ⇒ gate. In Obsidian the segment is inert. |
 
 ---
 

@@ -13,7 +13,9 @@ server, that's what they hand you. Here's the copy-paste path from those two str
 to your notes syncing live.
 
 Editing always happens in a client on your own machine — never on the server box.
-Pick an interactive editing client (CI and automation can also talk directly to the REST API — see the [[install-and-run|install guide]] for the publish flow):
+Pick an interactive editing client (a vault built from a Git repo can instead be
+published straight from CI on a tag push — see
+[[@documentation/server-management/publishing-from-ci|Publishing from CI (GitHub Actions)]]):
 
 ## Option A — Obsidian (any OS)
 
@@ -33,7 +35,7 @@ for now):
 ```sh
 arch=$(uname -m); case $arch in x86_64) arch=amd64;; aarch64) arch=arm64;; esac
 cd /tmp
-curl -fsSL "https://github.com/pawlenartowicz/leyline/releases/download/v0.2.1/leyline_0.2.1_linux_${arch}.tar.gz" | tar xz
+curl -fsSL "https://github.com/pawlenartowicz/leyline/releases/download/v0.3.0/leyline_0.3.0_linux_${arch}.tar.gz" | tar xz
 install -d ~/.local/bin && install -m 0755 leyline ~/.local/bin/   # on $PATH, no sudo
 ```
 

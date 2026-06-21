@@ -25,13 +25,13 @@ arch=$(uname -m); case $arch in x86_64) arch=amd64;; aarch64) arch=arm64;; esac
 as release archives from the GitHub org. The current line is `0.2.*`. **Keep every
 piece on the same minor:** the server, CLI, `leyline-web`, and the `web` theme clone
 must all be `0.2.*` — crossing a minor (`0.2` → `0.3`) carries no compatibility
-guarantee. The `_0.2.1_` in the filenames below tracks the release tag; bump it for
+guarantee. The `_0.3.0_` in the filenames below tracks the release tag; bump it for
 a later patch.
 
 ```sh
 cd /tmp
-curl -fsSL "https://github.com/pawlenartowicz/leyline/releases/download/v0.2.1/leyline-server_0.2.1_linux_${arch}.tar.gz" | tar xz
-curl -fsSL "https://github.com/pawlenartowicz/leyline/releases/download/v0.2.1/leyline-web_0.2.1_linux_${arch}.tar.gz" | tar xz
+curl -fsSL "https://github.com/pawlenartowicz/leyline/releases/download/v0.3.0/leyline-server_0.3.0_linux_${arch}.tar.gz" | tar xz
+curl -fsSL "https://github.com/pawlenartowicz/leyline/releases/download/v0.3.0/leyline-web_0.3.0_linux_${arch}.tar.gz" | tar xz
 sudo install -m 0755 leyline-server leyline-admin leyline-web /usr/local/bin/
 ```
 
@@ -89,8 +89,8 @@ tar czf - -C ./my-content --exclude=.git --exclude=.leyline . \
 
 A `200` returns `{"commit":…,"written":N,"deleted":M}`. To run this from GitHub
 Actions on a tag push (key stored as the `LEYLINE_KEY` repo secret), the full
-workflow and the overwrite contract live in the umbrella's
-[`docs/github-actions.md`](https://github.com/pawlenartowicz/leyline/blob/main/docs/github-actions.md).
+workflow, the overwrite contract, and the publish-then-tag caveat are in
+[[publishing-from-ci|Publishing from CI]].
 
 ### 5. Serve it on the web, then expose it
 

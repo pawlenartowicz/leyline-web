@@ -656,6 +656,14 @@ details.callout > summary.callout-title {
 [data-theme="dark"] .brand-logo-light { display: none; }
 [data-theme="dark"] .brand-logo-dark { display: block; }
 
+/* Theme-conditional image embeds (`![[a.png|theme-dark]]`). The leyline-web
+   engine emits both variants with these classes; the active `data-theme`
+   (always concrete dark/light, resolved by theme-init.js before first paint)
+   hides the non-matching one. The two selectors fully partition — no base
+   rule needed. Engine ↔ theme contract; see leyline minor 0.3. */
+[data-theme="light"] .leyline-variant-dark { display: none; }
+[data-theme="dark"] .leyline-variant-light { display: none; }
+
 /* Optional in-header navigation (rendered only when the vault declares
    `header.navigation` in web.yaml). */
 .site-nav {
