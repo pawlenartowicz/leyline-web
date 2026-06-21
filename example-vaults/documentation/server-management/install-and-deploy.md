@@ -22,14 +22,16 @@ arch=$(uname -m); case $arch in x86_64) arch=amd64;; aarch64) arch=arm64;; esac
 ### 1. Install the binaries
 
 `leyline-server` (with the `leyline-admin` operator tool) and `leyline-web` ship
-as release archives from the GitHub org. They are pinned to version `0.1.0`; a
-re-released build carries a `-N` suffix in the *tag and filename* only — substitute
-it into the URLs below if you target one.
+as release archives from the GitHub org. The current line is `0.2.*`. **Keep every
+piece on the same minor:** the server, CLI, `leyline-web`, and the `web` theme clone
+must all be `0.2.*` — crossing a minor (`0.2` → `0.3`) carries no compatibility
+guarantee. The `_0.2.0_` in the filenames below tracks the release tag; bump it for
+a later patch.
 
 ```sh
 cd /tmp
-curl -fsSL "https://github.com/pawlenartowicz/leyline/releases/latest/download/leyline-server_0.1.0_linux_${arch}.tar.gz" | tar xz
-curl -fsSL "https://github.com/pawlenartowicz/leyline/releases/latest/download/leyline-web_0.1.0_linux_${arch}.tar.gz" | tar xz
+curl -fsSL "https://github.com/pawlenartowicz/leyline/releases/latest/download/leyline-server_0.2.0_linux_${arch}.tar.gz" | tar xz
+curl -fsSL "https://github.com/pawlenartowicz/leyline/releases/latest/download/leyline-web_0.2.0_linux_${arch}.tar.gz" | tar xz
 sudo install -m 0755 leyline-server leyline-admin leyline-web /usr/local/bin/
 ```
 
