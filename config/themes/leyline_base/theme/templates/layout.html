@@ -34,7 +34,7 @@
   <link rel="stylesheet" href="{{$.Vault.BasePath}}_theme/{{.}}/tabular.css">
   {{- end }}
 </head>
-<body data-left="{{.LeftSidebar.LayoutMode}}" data-right="{{.RightSidebar.LayoutMode}}" data-toc-follow="{{.Theme.Defaults.TocFollow}}"{{with .EditSwitch.Mode}} data-mode="{{.}}"{{end}}{{if eq .RightSidebar.LayoutMode `references`}} class="refs-side"{{end}}>
+<body data-left="{{.LeftSidebar.LayoutMode}}" data-right="{{.RightSidebar.LayoutMode}}" data-toc-follow="{{.Theme.Defaults.TocFollow}}" data-text-align="{{.Theme.Defaults.TextAlign}}"{{with .EditSwitch.Mode}} data-mode="{{.}}"{{end}}{{if eq .RightSidebar.LayoutMode `references`}} class="refs-side"{{end}}>
   {{template "header.html" .}}
   <div class="sidebar-backdrop" aria-hidden="true"></div>
   <main>

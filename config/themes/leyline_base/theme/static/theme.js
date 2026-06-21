@@ -793,3 +793,61 @@
     }
   });
 })();
+
+// Copy-code buttons: a clipboard button on every fenced code block in the
+// article body. Every block is a <pre> — syntax-highlighted ones carry the
+// class on the <pre> itself (<pre class="chroma">, chroma's classes mode does
+// NOT add a wrapping <div>), plain ones are a bare <pre>. We wrap each <pre> in
+// an injected div so the button is a *sibling* of the <pre> (never a child) and
+// thus stays out of the copied text, which is always taken from pre.textContent.
+// Mermaid blocks (<pre class="mermaid">) render to SVG and are skipped.
+// Clipboard writes need a secure context, so when navigator.clipboard is absent
+// we inject nothing rather than a dead button — same no-JS-graceful stance as
+// the rest of this file.
+(function () {
+  const COPIED_MS = 1500;
+  const COPY_SVG =
+    '<svg class="icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
+  const CHECK_SVG =
+    '<svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>';
+
+  function addButton(container, pre) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "copy-code";
+    btn.setAttribute("aria-label", "Copy code");
+    btn.innerHTML = COPY_SVG + CHECK_SVG;
+    let timer = null;
+    btn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(pre.textContent);
+      } catch (_) {
+        return; // permission denied / not focused — leave the button at rest
+      }
+      btn.classList.add("copied");
+      btn.setAttribute("aria-label", "Copied");
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        btn.classList.remove("copied");
+        btn.setAttribute("aria-label", "Copy code");
+      }, COPIED_MS);
+    });
+    container.appendChild(btn);
+  }
+
+  function wireCopyButtons(root) {
+    for (const pre of root.querySelectorAll(".page-body pre")) {
+      if (pre.classList.contains("mermaid")) continue; // renders to SVG
+      const wrap = document.createElement("div");
+      wrap.className = "code-block";
+      pre.parentNode.insertBefore(wrap, pre);
+      wrap.appendChild(pre);
+      addButton(wrap, pre);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    if (!navigator.clipboard || !navigator.clipboard.writeText) return;
+    wireCopyButtons(document);
+  });
+})();

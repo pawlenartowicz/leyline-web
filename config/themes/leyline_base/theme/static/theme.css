@@ -548,6 +548,39 @@ pre {
   border-radius: 4px;
 }
 
+/* Copy-code button: theme.js wraps every code block's <pre> in a .code-block
+   div, which is the positioning context; the button sits in the top-right
+   corner at reduced opacity and brightens on hover/focus. Colours come from
+   theme vars, so it flips with light/dark automatically. */
+.page-body .code-block { position: relative; }
+.copy-code {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0;
+  color: var(--color-text-muted);
+  background: var(--color-code-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 120ms ease, color 120ms ease;
+}
+.page-body .code-block:hover .copy-code,
+.copy-code:hover,
+.copy-code:focus-visible { opacity: 1; }
+.copy-code:hover { color: var(--color-text); }
+.copy-code svg { width: 1rem; height: 1rem; }
+.copy-code .icon-check { display: none; }
+.copy-code.copied { color: var(--color-status-ok); opacity: 1; }
+.copy-code.copied .icon-copy { display: none; }
+.copy-code.copied .icon-check { display: inline; }
+
 .page-body img {
   max-width: 100%;
   height: auto;
@@ -1444,6 +1477,16 @@ body.refs-side {
 .page-body > h2:first-child { margin-top: 0; }
 .page-body p,
 .page-body li { text-wrap: pretty; }
+/* Prose alignment, driven by web.yaml text_align (body[data-text-align]).
+   Justify needs hyphenation or long technical words tear open inter-word
+   rivers; "left" gets no rule (browser default is ragged-left). Scoped to
+   p/li only — headings, code, and tables must stay left. Mirrors the copy in
+   repos/leyline internal/web/server/testdata — change together. */
+body[data-text-align="justify"] .page-body p,
+body[data-text-align="justify"] .page-body li {
+  text-align: justify;
+  hyphens: auto;
+}
 
 .page-body figure {
   margin: var(--space-3) 0;
