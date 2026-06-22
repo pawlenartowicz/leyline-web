@@ -68,7 +68,7 @@ Prefix matching is longest-first. A vault at `"/"` catches everything not matche
 
 ### Theme selection
 
-The `default_theme` must correspond to a directory under `<config-dir>/themes/`. Per-vault overrides live in the vault's `.leyline/vaultconfig/web.yaml` (`parent_theme:` key). See the theme cascade documentation in `leyline-web-source.md` for inheritance rules.
+The `default_theme` must correspond to a directory under `<config-dir>/themes/`. Per-vault overrides live in the vault's `.leyline/vaultconfig/web.yaml` (`parent_theme:` key). See the theme cascade documentation in `web-source.md` for inheritance rules.
 
 Theme knobs that don't require engine changes (colors, font choices, JS feature flags) go in the `custom:` block of a theme's or vault's `web.yaml`. The engine merges per-key (vault wins), and templates read the result as `.Custom`. See [[../vault-management/web-reader-setup|web reader setup]] for per-vault web.yaml fields.
 

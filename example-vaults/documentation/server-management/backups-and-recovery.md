@@ -13,7 +13,7 @@ Leyline's backup story is intentionally simple: **each vault is a plain director
 Back up the entire vault root (`vaults_dir`), including all subdirectories and hidden files:
 
 ```
-/opt/leyline/vaults/
+/var/lib/leyline/vaults/
 ├── research/
 │   ├── .git/                  ← full git history
 │   ├── .leyline/
@@ -34,8 +34,8 @@ The `.leyline/vaultconfig/access` file is the only secret-bearing file. It conta
 ### Server configuration
 
 ```
-/opt/leyline/config.yaml        ← server configuration
-/opt/leyline/registry.toml      ← vault registry (ID → path + flags)
+/etc/leyline/config.yaml        ← server configuration
+/var/lib/leyline/registry.toml      ← vault registry (ID → path + flags)
 ```
 
 The registry maps vault IDs to filesystem paths and `server_wide_admins` flags. Without it, the server can still start (it creates an empty registry) but it will not know about existing vaults until they are re-registered.
@@ -50,8 +50,8 @@ A consistent snapshot requires that no commit is in progress while you copy `.gi
 
 ```sh
 systemctl stop leyline-server
-rsync -a --delete /opt/leyline/vaults/ /backup/leyline-vaults/
-rsync -a /opt/leyline/config.yaml /opt/leyline/registry.toml /backup/leyline-config/
+rsync -a --delete /var/lib/leyline/vaults/ /backup/leyline-vaults/
+rsync -a /etc/leyline/config.yaml /var/lib/leyline/registry.toml /backup/leyline-config/
 systemctl start leyline-server
 ```
 
@@ -62,8 +62,8 @@ For live backups (no service interruption), use a filesystem snapshot (LVM, ZFS,
 ### From a full backup
 
 1. Stop the server: `systemctl stop leyline-server`
-2. Copy the vault directory back into place: `rsync -a /backup/leyline-vaults/research/ /opt/leyline/vaults/research/`
-3. Ensure permissions: `chown -R leyline:leyline /opt/leyline/vaults/research/`
+2. Copy the vault directory back into place: `rsync -a /backup/leyline-vaults/research/ /var/lib/leyline/vaults/research/`
+3. Ensure permissions: `chown -R leyline:leyline /var/lib/leyline/vaults/research/`
 4. Restore `config.yaml` and `registry.toml` if they were lost.
 5. Start the server: `systemctl start leyline-server`
 
@@ -78,7 +78,7 @@ If `registry.toml` is lost but vault directories are intact:
 
 ```toml
 [vaults.research]
-path = "/opt/leyline/vaults/research"
+path = "/var/lib/leyline/vaults/research"
 server_wide_admins = false
 created = "2026-01-01T00:00:00Z"   # approximate date is fine
 ```
@@ -96,7 +96,7 @@ For git-level recovery without a client:
 
 ```sh
 # On the server box, as the leyline user or with appropriate permissions.
-cd /opt/leyline/vaults/research
+cd /var/lib/leyline/vaults/research
 git log --oneline -20          # find the target commit
 git diff HEAD~5 HEAD           # inspect what changed
 
@@ -120,7 +120,7 @@ Direct git manipulation bypasses the server's WAL and stage state. Only do this 
 After restoring, verify the vault repository is intact:
 
 ```sh
-cd /opt/leyline/vaults/research
+cd /var/lib/leyline/vaults/research
 git fsck --full
 ```
 

@@ -10,7 +10,7 @@ All configuration lives in a single `server.yaml` (path set by `--config`, defau
 
 ```yaml
 # ─── Required ────────────────────────────────────────────────────────────────
-vaults_dir: /opt/leyline/vaults
+vaults_dir: /var/lib/leyline/vaults
 # Absolute path to the directory that holds vault subdirectories.
 # The server may also register vaults whose `path` is outside this directory
 # (via registry.toml `path:`), but this is the default parent for vault create.
@@ -130,9 +130,9 @@ vault_limits:
   # Recommended floor for guest-accessible vaults: 21474836480 (20 GiB).
 
 # ─── Admin-surface keys (set by leyline-admin defaults; rarely need changing)
-registry: /opt/leyline/registry.toml   # default: <config-dir>/registry.toml
+registry: /var/lib/leyline/registry.toml  # packaged default; falls back to <config-dir>/registry.toml
 admin_socket: /run/leyline/admin.sock  # default: /run/leyline/admin.sock
-trash_dir: /opt/leyline/vaults/.trash  # default: <vaults_dir>/.trash
+trash_dir: /var/lib/leyline/vaults/.trash  # default: <vaults_dir>/.trash
 ```
 
 ## Environment variables

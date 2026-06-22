@@ -28,7 +28,7 @@ The laptop equivalent is `leyline admin <verb>`, which exposes the same verbs an
 ```sh
 # Create a new vault, print the first admin key once.
 leyline-admin vault create research \
-  --path /opt/leyline/vaults/research \
+  --path /var/lib/leyline/vaults/research \
   --admin-key-name ops \
   --server-wide-admin
 
@@ -87,8 +87,8 @@ When the server is not running, `vault list` reads `registry.toml` directly:
 $ leyline-admin vault list
 [offline] (server not running — runtime columns elided)
 ID          SERVER-WIDE  PATH
-research    true         /opt/leyline/vaults/research
-notes       false        /opt/leyline/vaults/notes
+research    true         /var/lib/leyline/vaults/research
+notes       false        /var/lib/leyline/vaults/notes
 ```
 
 With `--json`, the output includes `"offline": true` and omits runtime columns (hydrated, active connections).
@@ -99,7 +99,7 @@ With `--json`, the output includes `"offline": true` and omits runtime columns (
 
 ```toml
 [vaults.research]
-path = "/opt/leyline/vaults/research"
+path = "/var/lib/leyline/vaults/research"
 server_wide_admins = true
 admin_email = "ops@example.com"
 created = "2026-05-18T10:00:00Z"
