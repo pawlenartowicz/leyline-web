@@ -17,15 +17,15 @@ This walkthrough follows the publish-a-site shape (sync server + web reader + CI
 
 Leyline ships as native `deb` / `rpm` / `apk` packages — **two** of them: the sync
 server (`leyline-server` + the `leyline-admin` operator tool) and the web reader
-(`leyline-web`). The current line is `0.3.*`. **Keep every piece on the same minor:**
+(`leyline-web`). The current line is `0.4.*`. **Keep every piece on the same minor:**
 the server, CLI, `leyline-web`, and the `web` theme clone (step 4) must all be
-`0.3.*` — crossing a minor (`0.3` → `0.4`) carries no compatibility guarantee. The
-`0.3.2` in the URLs below tracks the release tag; bump it for a later patch.
+`0.4.*` — crossing a minor (`0.4` → `0.5`) carries no compatibility guarantee. The
+`0.4.0` in the URLs below tracks the release tag; bump it for a later patch.
 
 Pick your version and CPU arch once — on arm64 hosts set `arch=arm64`:
 
 ```sh
-ver=0.3.2; arch=amd64
+ver=0.4.0; arch=amd64
 base="https://github.com/pawlenartowicz/leyline/releases/download/v${ver}"
 ```
 
@@ -111,7 +111,7 @@ Create one called `mysite` and point it at the vault from step 2:
 
 ```sh
 sudo git clone https://github.com/pawlenartowicz/leyline-web /opt/leyline-web/mysite
-sudo git -C /opt/leyline-web/mysite checkout "$(git -C /opt/leyline-web/mysite tag -l 'v0.3.*' | sort -V | tail -1)"   # latest 0.3.* — match your installed minor
+sudo git -C /opt/leyline-web/mysite checkout "$(git -C /opt/leyline-web/mysite tag -l 'v0.4.*' | sort -V | tail -1)"   # latest 0.4.* — match your installed minor
 sudo chown -R leyline:leyline /opt/leyline-web/mysite
 sudo $EDITOR /opt/leyline-web/mysite/config/config.yaml   # domain: notes.example.com
                                                           # listen: 127.0.0.1:8091
@@ -321,7 +321,7 @@ archives — `leyline-server_<ver>_linux_<arch>.tar.gz` (carries both `leyline-s
 and `leyline-admin`) and `leyline-web_<ver>_linux_<arch>.tar.gz`:
 
 ```sh
-ver=0.3.2; arch=amd64
+ver=0.4.0; arch=amd64
 base="https://github.com/pawlenartowicz/leyline/releases/download/v${ver}"
 cd /tmp
 curl -fsSL "${base}/leyline-server_${ver}_linux_${arch}.tar.gz" | tar xz

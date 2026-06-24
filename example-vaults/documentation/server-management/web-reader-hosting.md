@@ -16,7 +16,7 @@ An instance is a clone of the [`web`](https://github.com/pawlenartowicz/leyline-
 
 ```sh
 sudo git clone https://github.com/pawlenartowicz/leyline-web /opt/leyline-web/mysite
-sudo git -C /opt/leyline-web/mysite checkout "$(git -C /opt/leyline-web/mysite tag -l 'v0.3.*' | sort -V | tail -1)"   # latest 0.3.* — match your engine minor
+sudo git -C /opt/leyline-web/mysite checkout "$(git -C /opt/leyline-web/mysite tag -l 'v0.4.*' | sort -V | tail -1)"   # latest 0.4.* — match your engine minor
 sudo chown -R leyline:leyline /opt/leyline-web/mysite
 ```
 
