@@ -35,7 +35,7 @@ for now):
 ```sh
 arch=$(uname -m); case $arch in x86_64) arch=amd64;; aarch64) arch=arm64;; esac
 cd /tmp
-curl -fsSL "https://github.com/pawlenartowicz/leyline/releases/download/v0.4.0/leyline_0.4.0_linux_${arch}.tar.gz" | tar xz
+curl -fsSL "https://github.com/pawlenartowicz/leyline/releases/download/v0.4.1/leyline_0.4.1_linux_${arch}.tar.gz" | tar xz
 install -d ~/.local/bin && install -m 0755 leyline ~/.local/bin/   # on $PATH, no sudo
 ```
 
