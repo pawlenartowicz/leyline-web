@@ -15,10 +15,11 @@
       render a section / nav item only when its key is allowed. {{.Active}} is
       the key of the section shown first (the rest start hidden).
 */ -}}
-<html lang="en" data-theme="light"><head>
+<html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Manage — {{.Vault}}</title>
+<script src="{{.BasePath}}_theme/leyline_base/theme-init.js"></script>
 {{- range .CSSChain }}
 <link rel="stylesheet" href="{{$.BasePath}}_theme/{{.}}/theme.css">
 {{- end }}
@@ -162,14 +163,14 @@
               <input type="hidden" name="section" value="keys">
               <input type="hidden" name="op" value="role">
               <input type="hidden" name="name" value="{{.Name}}">
-              <select class="role-select" name="role" onchange="this.form.submit()">{{$cur := .Role}}{{range $.RoleOptions}}<option value="{{.}}"{{if eq . $cur}} selected{{end}}>{{.}}</option>{{end}}</select>
+              <select class="role-select" name="role">{{$cur := .Role}}{{range $.RoleOptions}}<option value="{{.}}"{{if eq . $cur}} selected{{end}}>{{.}}</option>{{end}}</select>
               <noscript><button class="btn btn--quiet" type="submit">Set</button></noscript>
             </form>
           </td>
           <td class="keytext">{{.Generated}}</td>
           <td class="keytext">{{.LastSeen}}</td>
           <td><span class="cell-actions">
-            <form method="post" action="{{$.Action}}" onsubmit="return confirm('Revoke {{.Name}}?')" style="display:inline">
+            <form method="post" action="{{$.Action}}" data-confirm="Revoke {{.Name}}?" style="display:inline">
               <input type="hidden" name="section" value="keys">
               <input type="hidden" name="op" value="revoke">
               <input type="hidden" name="name" value="{{.Name}}">
@@ -203,7 +204,7 @@
           <td>{{.ID}}</td>
           <td class="keytext">{{.Path}}</td>
           <td class="keytext">{{.ServerWideAdmins}}</td>
-          <td><form method="post" action="{{$.Action}}" onsubmit="return confirm('Destroy {{.ID}}? This is irreversible.')" style="display:inline">
+          <td><form method="post" action="{{$.Action}}" data-confirm="Destroy {{.ID}}? This is irreversible." style="display:inline">
             <input type="hidden" name="section" value="vaults">
             <input type="hidden" name="op" value="destroy">
             <input type="hidden" name="id" value="{{.ID}}">
@@ -225,29 +226,5 @@
     </section>{{end}}
   </main>
 </div>
-<script>
-var nav = document.getElementById('nav');
-var pages = Array.prototype.slice.call(document.querySelectorAll('.page'));
-if (nav) nav.addEventListener('click', function (e) {
-  var item = e.target.closest ? e.target.closest('.nav-item') : null;
-  if (!item) return;
-  var items = nav.querySelectorAll('.nav-item');
-  for (var i = 0; i < items.length; i++) items[i].setAttribute('aria-current', 'false');
-  item.setAttribute('aria-current', 'true');
-  var target = item.getAttribute('data-target');
-  for (var j = 0; j < pages.length; j++) pages[j].hidden = pages[j].id !== target;
-  var app0 = document.getElementById('app');
-  if (app0) app0.setAttribute('data-drawer', 'closed');
-});
-var themeBtn = document.getElementById('themeBtn');
-if (themeBtn) themeBtn.addEventListener('click', function () {
-  var h = document.documentElement;
-  h.setAttribute('data-theme', h.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
-});
-var app = document.getElementById('app');
-var ob = document.querySelector('[data-open-drawer]');
-if (ob && app) ob.addEventListener('click', function () { app.setAttribute('data-drawer', 'open'); });
-var cb = document.querySelector('[data-close-drawer]');
-if (cb && app) cb.addEventListener('click', function () { app.setAttribute('data-drawer', 'closed'); });
-</script>
+<script src="{{.BasePath}}_theme/leyline_base/panel.js"></script>
 </body></html>

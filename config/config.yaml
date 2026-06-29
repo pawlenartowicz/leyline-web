@@ -20,6 +20,17 @@ domain: localhost
 # Listen address. Use 127.0.0.1:8091 if you put a reverse proxy in front.
 listen: "127.0.0.1:8091"
 
+# Pairing. Leave unset (or empty) to run as a read-only guest mirror —
+# no management surface; the /<vault>/_panel route 404s. Set it to the
+# public host of a running leyline-server to enable paired mode: an
+# admin-login-gated panel at /<vault>/_panel that relays the user's
+# config/key/vault mutations to that server. Bare host only — no scheme,
+# no path (the gateway always dials wss:// + https://, so the host must
+# be TLS-fronted; a loopback like 127.0.0.1:8090 will NOT work). When the
+# server is co-located behind this same reverse proxy, use your public
+# domain and let the proxy split /_leyline/* to the sync port.
+# server_address: example.com
+
 # Hot-reload theme files in config/themes/. Demo default is true so
 # theme edits show up without a restart. Set to false in production.
 dev_mode: true
