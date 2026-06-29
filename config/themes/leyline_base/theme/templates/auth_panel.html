@@ -20,6 +20,7 @@
             </form>
           </div>
         {{end}}
+        {{if .PanelURL}}<a class="auth-panel__manage" href="{{.PanelURL}}">Manage</a>{{end}}
         <form method="post" action="{{.LogoutPath}}" class="auth-panel__form">
           <button type="submit" class="auth-panel__btn">Log out of all</button>
         </form>

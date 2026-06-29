@@ -1,0 +1,304 @@
+/* panel.css — layout for the leyline-web management panel (_panel).
+ *
+ * Presentation-only. The engine ships NO panel CSS; this file is the panel's
+ * entire look, loaded through the theme chain alongside theme.css. It consumes
+ * the active theme's design tokens (--color-*, --font-*, --space-*) — there is
+ * deliberately no :root token block here, so a vault on a custom theme paints
+ * its panel in that theme's palette/fonts (light and [data-theme="dark"]) for
+ * free. To restyle the panel, override these rules in a child theme's
+ * panel.css, or just redefine the tokens in the child's theme.css.
+ *
+ * --rail-width / --panel-max are panel-local layout constants (not theme
+ * tokens), declared on .app so the whole panel inherits them. */
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: 400 15px/1.5 var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  --rail-width: 17rem;
+  --panel-max: 60rem;
+  display: grid;
+  grid-template-columns: var(--rail-width) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.rail {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.rail__vault {
+  padding: var(--space-3) var(--space-3) var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: var(--space-3);
+}
+.brand svg { width: 22px; height: 22px; color: var(--color-text); }
+.brand__word {
+  font-family: var(--font-special, Charter, Georgia, serif);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+.brand__seg {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  letter-spacing: 0.04em;
+  margin-left: auto;
+  padding: 2px 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+}
+
+.vault-plate {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  background: var(--color-surface);
+}
+.vault-plate__label { font-size: 0.7rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.vault-plate__name { font-weight: 600; font-size: 0.95rem; }
+.vault-plate__host { font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-text-muted); }
+
+.rail__nav { flex: 1; overflow-y: auto; padding: var(--space-2) 0; }
+.nav-group__title {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+  padding: var(--space-3) var(--space-3) var(--space-1);
+}
+.nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.5rem var(--space-3);
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--color-text);
+  cursor: pointer;
+  text-align: left;
+}
+.nav-item:hover { background: var(--color-active-bg); }
+.nav-item__icon { width: 16px; height: 16px; color: var(--color-text-muted); flex: none; }
+.nav-item__label { flex: 1; }
+.nav-item__cap {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--color-text-muted);
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.nav-item:hover .nav-item__cap { opacity: 1; }
+
+.nav-item[aria-current="true"] { background: var(--color-active-bg); color: var(--color-active-fg); font-weight: 600; }
+.nav-item[aria-current="true"] .nav-item__icon { color: var(--color-link); }
+.nav-item[aria-current="true"]::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 6px; bottom: 6px;
+  width: 3px;
+  background: var(--color-link);
+  border-radius: 0 2px 2px 0;
+}
+
+.rail__foot {
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: 0.85rem;
+}
+.whoami { display: flex; align-items: center; gap: 0.5rem; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--color-status-ok); flex: none; }
+.whoami__key { font-family: var(--font-mono); color: var(--color-text-muted); font-size: 0.78rem; }
+.foot-tools { display: flex; gap: var(--space-2); align-items: center; }
+.icon-btn {
+  margin-left: auto;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  border-radius: 3px;
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  cursor: pointer;
+}
+.icon-btn:hover { border-color: var(--color-link); color: var(--color-link); }
+
+.work { padding: var(--space-4); }
+.page { max-width: var(--panel-max); margin: 0 auto; }
+.page[hidden] { display: none; }
+
+.page__head { margin-bottom: var(--space-4); }
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-link);
+}
+.page__title { font-size: 1.7rem; font-weight: 600; margin: 0.2rem 0 0.3rem; letter-spacing: -0.01em; }
+.page__desc { color: var(--color-text-muted); margin: 0; max-width: 46rem; }
+
+.field {
+  font: inherit;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  padding: 0.45rem 0.6rem;
+  width: 100%;
+  max-width: 22rem;
+}
+.field:focus-visible { outline: 2px solid var(--color-link); outline-offset: 1px; }
+
+.btn {
+  font: 500 0.85rem var(--font-ui);
+  color: var(--color-link);
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--color-active-bg); border-color: var(--color-link); }
+.btn:focus-visible { outline: 2px solid var(--color-link); outline-offset: 1px; }
+.btn--ghost { color: var(--color-text-muted); }
+.btn--danger { color: var(--color-callout-error-border); }
+.btn--danger:hover { background: var(--color-callout-error-bg); border-color: var(--color-callout-error-border); }
+.btn--quiet { border-color: transparent; padding-left: 0.4rem; padding-right: 0.4rem; }
+
+.regtable { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.regtable th {
+  text-align: left;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  padding: 0 0.6rem var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+.regtable td { padding: 0.7rem 0.6rem; border-bottom: 1px solid var(--color-border); vertical-align: middle; }
+.regtable tr:hover td { background: var(--color-surface); }
+.regtable td:first-child, .regtable th:first-child { padding-left: 0; }
+.regtable td:last-child, .regtable th:last-child { padding-right: 0; text-align: right; }
+.keytext { font-family: var(--font-mono); font-size: 0.82rem; color: var(--color-text-muted); }
+.cell-actions { display: inline-flex; gap: 0.3rem; }
+
+.role-select {
+  font: inherit; font-size: 0.82rem;
+  background: none; border: 1px solid transparent; border-radius: 3px;
+  padding: 0.2rem 0.3rem; color: var(--color-text); cursor: pointer;
+}
+.role-select:hover { border-color: var(--color-border); background: var(--color-surface); }
+
+.addbar { display: flex; gap: var(--space-2); align-items: center; margin-top: var(--space-3); flex-wrap: wrap; }
+.addbar .field { max-width: 16rem; }
+
+.facing__bar {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.5rem 0.7rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-muted);
+}
+.facing__bar .btn { margin-left: auto; text-transform: none; letter-spacing: 0; }
+.code {
+  margin: 0;
+  padding: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.6;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.editor-box { border: 1px solid var(--color-border); border-radius: 4px; overflow: hidden; }
+
+.subhead { margin: var(--space-4) 0 var(--space-2); }
+.subhead h2 { font-size: 1.05rem; font-weight: 600; margin: 0.15rem 0 0.2rem; }
+.subhead p { margin: 0; color: var(--color-text-muted); font-size: 0.86rem; max-width: 44rem; }
+
+.scrim { display: none; }
+.hamburger { display: none; }
+@media (max-width: 64rem) {
+  .app { grid-template-columns: 1fr; }
+  .rail {
+    position: fixed; z-index: 30; width: min(85vw, 20rem);
+    transform: translateX(-100%); transition: transform 0.2s ease-out;
+  }
+  .app[data-drawer="open"] .rail { transform: none; }
+  .app[data-drawer="open"] .scrim {
+    display: block; position: fixed; inset: 0; z-index: 25;
+    background: rgba(0,0,0,0.35);
+  }
+  .hamburger {
+    display: inline-grid; place-items: center;
+    position: sticky; top: var(--space-3); margin-bottom: var(--space-3);
+    width: 40px; height: 40px;
+    border: 1px solid var(--color-border); border-radius: 3px;
+    background: var(--color-bg); color: var(--color-text); cursor: pointer;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+/* ---- panel-local: controls the prototype mocked statically ------------- */
+
+/* the config editor is a real <textarea> wearing the .code skin */
+textarea.code--editor {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  resize: vertical;
+  white-space: pre;
+}
+textarea.code--editor:focus-visible { outline: 2px solid var(--color-link); outline-offset: -2px; }
+
+/* redirect-result banner (server round-trips ?msg=) — uses callout tokens. */
+.panel-banner {
+  max-width: var(--panel-max);
+  margin: 0 auto var(--space-4);
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--color-callout-success-border);
+  background: var(--color-callout-success-bg);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+.panel-banner--err { border-color: var(--color-callout-error-border); background: var(--color-callout-error-bg); }
+
+/* inline checkbox label in an addbar (vault create: server-wide admins) */
+.cap-inline { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: var(--color-text-muted); }

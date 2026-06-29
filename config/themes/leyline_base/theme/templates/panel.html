@@ -1,0 +1,253 @@
+<!doctype html>
+{{- /*
+  panel.html — the leyline-web management panel (_panel), rendered entirely
+  from one panelView struct the engine hands in. ALL panel presentation lives
+  here: section order, rail grouping, headings, copy, icons, and the inline
+  tab/theme/drawer JS. The engine carries no panel markup or CSS.
+
+  Contract the engine dispatches on (keep these, restyle everything else):
+    - each section element's id MUST equal its section key
+      (webyaml / webignore / roles / keys / vaults) — the tab JS targets them
+      and the integration relay test asserts on them.
+    - section forms POST to {{.Action}} with the hidden field names the handler
+      switches on: section, op, name, role, content (and id for vaults).
+    - presence of a key in {{.Allowed}} means the session holds its capability;
+      render a section / nav item only when its key is allowed. {{.Active}} is
+      the key of the section shown first (the rest start hidden).
+*/ -}}
+<html lang="en" data-theme="light"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manage — {{.Vault}}</title>
+{{- range .CSSChain }}
+<link rel="stylesheet" href="{{$.BasePath}}_theme/{{.}}/theme.css">
+{{- end }}
+{{- range .PanelCSSChain }}
+<link rel="stylesheet" href="{{$.BasePath}}_theme/{{.}}/panel.css">
+{{- end }}
+</head>
+<body>
+<div class="app" id="app">
+  <div class="scrim" data-close-drawer></div>
+  <aside class="rail">
+    <div class="rail__vault">
+      <div class="brand">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 7h20M2 17h20M2 12h7M15 12h7"/><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/></svg>
+        <span class="brand__word">leyline</span>
+        <span class="brand__seg">_panel</span>
+      </div>
+      <div class="vault-plate">
+        <span class="vault-plate__label">vault</span>
+        <span class="vault-plate__name">{{.Vault}}</span>
+        {{if .Host}}<span class="vault-plate__host">{{.Host}}</span>{{end}}
+      </div>
+    </div>
+    <nav class="rail__nav" id="nav">
+      {{if or .Allowed.webyaml .Allowed.webignore .Allowed.roles}}<div class="nav-group">
+        <div class="nav-group__title">Vault config</div>
+        {{if .Allowed.webyaml}}<button class="nav-item" type="button" data-target="webyaml"{{if eq .Active "webyaml"}} aria-current="true"{{end}}>
+          <span class="nav-item__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 4h14v16H5z"/><path d="M8 9h8M8 13h8M8 17h4"/></svg></span>
+          <span class="nav-item__label">web.yaml</span>
+          <span class="nav-item__cap">vault.admin</span>
+        </button>{{end}}
+        {{if .Allowed.webignore}}<button class="nav-item" type="button" data-target="webignore"{{if eq .Active "webignore"}} aria-current="true"{{end}}>
+          <span class="nav-item__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><path d="M6.5 6.5l11 11"/></svg></span>
+          <span class="nav-item__label">webignore</span>
+          <span class="nav-item__cap">vault.admin</span>
+        </button>{{end}}
+        {{if .Allowed.roles}}<button class="nav-item" type="button" data-target="roles"{{if eq .Active "roles"}} aria-current="true"{{end}}>
+          <span class="nav-item__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l8 4v5c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V7z"/></svg></span>
+          <span class="nav-item__label">Roles</span>
+          <span class="nav-item__cap">vault.admin</span>
+        </button>{{end}}
+      </div>{{end}}
+      {{if .Allowed.keys}}<div class="nav-group">
+        <div class="nav-group__title">Access</div>
+        <button class="nav-item" type="button" data-target="keys"{{if eq .Active "keys"}} aria-current="true"{{end}}>
+          <span class="nav-item__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v4M15 12v3"/></svg></span>
+          <span class="nav-item__label">Keys / access</span>
+          <span class="nav-item__cap">keys.manage</span>
+        </button>
+      </div>{{end}}
+      {{if .Allowed.vaults}}<div class="nav-group">
+        <div class="nav-group__title">Server</div>
+        <button class="nav-item" type="button" data-target="vaults"{{if eq .Active "vaults"}} aria-current="true"{{end}}>
+          <span class="nav-item__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/><path d="M7 7h.01M7 17h.01"/></svg></span>
+          <span class="nav-item__label">Vaults</span>
+          <span class="nav-item__cap">vault.admin</span>
+        </button>
+      </div>{{end}}
+    </nav>
+    <div class="rail__foot">
+      <div class="whoami"><span class="dot" title="connected"></span><span class="whoami__key">{{.MaskedKey}}</span></div>
+      <div class="foot-tools">
+        <button class="icon-btn" id="themeBtn" type="button" title="Toggle light / dark" aria-label="Toggle theme">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 12.8A8 8 0 1111.2 3a6 6 0 009.8 9.8z"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+  <main class="work">
+    <button class="hamburger" type="button" data-open-drawer aria-label="Open menu">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    {{if .Banner}}<div class="panel-banner">{{.Banner}}</div>{{end}}
+
+    {{if .Allowed.webyaml}}<section class="page" id="webyaml"{{if ne .Active "webyaml"}} hidden{{end}}>
+      <header class="page__head">
+        <div class="eyebrow">Vault config</div>
+        <h1 class="page__title">web.yaml</h1>
+        <p class="page__desc">Edited as text — comments and unknown keys survive. The file holds only your overrides; everything else falls back to the theme and built-in defaults, shown below.</p>
+      </header>
+      {{if .WebYAML.Err}}<p class="panel-banner panel-banner--err">{{.WebYAML.Err}}</p>{{end}}
+      <form method="post" action="{{.Action}}">
+        <input type="hidden" name="section" value="webyaml">
+        <div class="editor-box">
+          <div class="facing__bar">overrides — what you wrote<button class="btn" type="submit">Save</button></div>
+          <textarea name="content" class="code code--editor" rows="22" spellcheck="false">{{.WebYAML.Content}}</textarea>
+        </div>
+      </form>
+      {{if .WebYAML.Effective}}
+      <div class="subhead"><h2>Effective config (read-only)</h2><p>Fully-resolved values — built-in defaults, theme, and your overrides merged. Your file holds only the overrides; everything else is inherited.</p></div>
+      <div class="editor-box"><pre class="code">{{.WebYAML.Effective}}</pre></div>
+      {{end}}
+    </section>{{end}}
+
+    {{if .Allowed.webignore}}<section class="page" id="webignore"{{if ne .Active "webignore"}} hidden{{end}}>
+      <header class="page__head">
+        <div class="eyebrow">Vault config</div>
+        <h1 class="page__title">webignore</h1>
+        <p class="page__desc">What the reader exposes, by section (gitignore syntax). This is the synced, web-facing gate — the client-side leylineignore is a different file and isn't managed here.</p>
+      </header>
+      {{if .WebIgnore.Err}}<p class="panel-banner panel-banner--err">{{.WebIgnore.Err}}</p>{{end}}
+      <form method="post" action="{{.Action}}">
+        <input type="hidden" name="section" value="webignore">
+        <div class="editor-box">
+          <div class="facing__bar">patterns — one per line, grouped by [section]<button class="btn" type="submit">Save</button></div>
+          <textarea name="content" class="code code--editor" rows="22" spellcheck="false">{{.WebIgnore.Content}}</textarea>
+        </div>
+      </form>
+    </section>{{end}}
+
+    {{if .Allowed.roles}}<section class="page" id="roles"{{if ne .Active "roles"}} hidden{{end}}>
+      <header class="page__head">
+        <div class="eyebrow">Vault config</div>
+        <h1 class="page__title">Roles</h1>
+        <p class="page__desc">Custom role definitions for this vault, edited as text. The built-in roles (admin/editor/reader) are fixed and not listed here.</p>
+      </header>
+      {{if .Roles.Err}}<p class="panel-banner panel-banner--err">{{.Roles.Err}}</p>{{end}}
+      <form method="post" action="{{.Action}}">
+        <input type="hidden" name="section" value="roles">
+        <div class="editor-box">
+          <div class="facing__bar">role definitions<button class="btn" type="submit">Save</button></div>
+          <textarea name="content" class="code code--editor" rows="22" spellcheck="false">{{.Roles.Content}}</textarea>
+        </div>
+      </form>
+    </section>{{end}}
+
+    {{if .Allowed.keys}}<section class="page" id="keys"{{if ne .Active "keys"}} hidden{{end}}>
+      <header class="page__head">
+        <div class="eyebrow">Access</div>
+        <h1 class="page__title">Keys / access</h1>
+        <p class="page__desc">Who can reach this vault, and as what. Minting a key shows the secret once — copy it then. Revoking removes access immediately.</p>
+      </header>
+      {{if .Keys.Err}}<p class="panel-banner panel-banner--err">keys unavailable: {{.Keys.Err}}</p>{{else}}
+      <table class="regtable">
+        <thead><tr><th>Holder</th><th>Role</th><th>Generated</th><th>Last seen</th><th></th></tr></thead>
+        <tbody>
+        {{range .Keys.Rows}}<tr>
+          <td>{{.Name}}</td>
+          <td>
+            <form method="post" action="{{$.Action}}" style="display:inline">
+              <input type="hidden" name="section" value="keys">
+              <input type="hidden" name="op" value="role">
+              <input type="hidden" name="name" value="{{.Name}}">
+              <select class="role-select" name="role" onchange="this.form.submit()">{{$cur := .Role}}{{range $.RoleOptions}}<option value="{{.}}"{{if eq . $cur}} selected{{end}}>{{.}}</option>{{end}}</select>
+              <noscript><button class="btn btn--quiet" type="submit">Set</button></noscript>
+            </form>
+          </td>
+          <td class="keytext">{{.Generated}}</td>
+          <td class="keytext">{{.LastSeen}}</td>
+          <td><span class="cell-actions">
+            <form method="post" action="{{$.Action}}" onsubmit="return confirm('Revoke {{.Name}}?')" style="display:inline">
+              <input type="hidden" name="section" value="keys">
+              <input type="hidden" name="op" value="revoke">
+              <input type="hidden" name="name" value="{{.Name}}">
+              <button class="btn btn--danger btn--quiet" type="submit">Revoke</button>
+            </form>
+          </span></td>
+        </tr>{{end}}
+        </tbody>
+      </table>
+      <form method="post" action="{{.Action}}" class="addbar">
+        <input type="hidden" name="section" value="keys">
+        <input type="hidden" name="op" value="create">
+        <input class="field" name="name" placeholder="holder name" required>
+        <select class="field" name="role" style="max-width:9rem">{{range .RoleOptions}}<option value="{{.}}">{{.}}</option>{{end}}</select>
+        <button class="btn" type="submit">Mint key</button>
+      </form>
+      {{end}}
+    </section>{{end}}
+
+    {{if .Allowed.vaults}}<section class="page" id="vaults"{{if ne .Active "vaults"}} hidden{{end}}>
+      <header class="page__head">
+        <div class="eyebrow">Server</div>
+        <h1 class="page__title">Vaults</h1>
+        <p class="page__desc">Every vault this server hosts. Create or destroy vaults here. Server-wide admin only — the server enforces it on each action, so a non-server-wide admin sees an error, not the table.</p>
+      </header>
+      {{if .Vaults.Err}}<p class="panel-banner panel-banner--err">Vault administration requires server-wide admin on this server: {{.Vaults.Err}}</p>{{else}}
+      <table class="regtable">
+        <thead><tr><th>Vault</th><th>Path</th><th>Server-wide admins</th><th></th></tr></thead>
+        <tbody>
+        {{range .Vaults.Rows}}<tr>
+          <td>{{.ID}}</td>
+          <td class="keytext">{{.Path}}</td>
+          <td class="keytext">{{.ServerWideAdmins}}</td>
+          <td><form method="post" action="{{$.Action}}" onsubmit="return confirm('Destroy {{.ID}}? This is irreversible.')" style="display:inline">
+            <input type="hidden" name="section" value="vaults">
+            <input type="hidden" name="op" value="destroy">
+            <input type="hidden" name="id" value="{{.ID}}">
+            <button class="btn btn--danger btn--quiet" type="submit">Destroy</button>
+          </form></td>
+        </tr>{{end}}
+        </tbody>
+      </table>
+      <form method="post" action="{{.Action}}" class="addbar">
+        <input type="hidden" name="section" value="vaults">
+        <input type="hidden" name="op" value="create">
+        <input class="field" name="id" placeholder="new vault id" required>
+        <input class="field" name="path" placeholder="path (optional)">
+        <label class="cap-inline"><input type="checkbox" name="server_wide_admins" value="1"> server-wide admins</label>
+        <input class="field" name="admin_email" placeholder="admin email (optional)">
+        <button class="btn" type="submit">Create vault</button>
+      </form>
+      {{end}}
+    </section>{{end}}
+  </main>
+</div>
+<script>
+var nav = document.getElementById('nav');
+var pages = Array.prototype.slice.call(document.querySelectorAll('.page'));
+if (nav) nav.addEventListener('click', function (e) {
+  var item = e.target.closest ? e.target.closest('.nav-item') : null;
+  if (!item) return;
+  var items = nav.querySelectorAll('.nav-item');
+  for (var i = 0; i < items.length; i++) items[i].setAttribute('aria-current', 'false');
+  item.setAttribute('aria-current', 'true');
+  var target = item.getAttribute('data-target');
+  for (var j = 0; j < pages.length; j++) pages[j].hidden = pages[j].id !== target;
+  var app0 = document.getElementById('app');
+  if (app0) app0.setAttribute('data-drawer', 'closed');
+});
+var themeBtn = document.getElementById('themeBtn');
+if (themeBtn) themeBtn.addEventListener('click', function () {
+  var h = document.documentElement;
+  h.setAttribute('data-theme', h.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+});
+var app = document.getElementById('app');
+var ob = document.querySelector('[data-open-drawer]');
+if (ob && app) ob.addEventListener('click', function () { app.setAttribute('data-drawer', 'open'); });
+var cb = document.querySelector('[data-close-drawer]');
+if (cb && app) cb.addEventListener('click', function () { app.setAttribute('data-drawer', 'closed'); });
+</script>
+</body></html>
