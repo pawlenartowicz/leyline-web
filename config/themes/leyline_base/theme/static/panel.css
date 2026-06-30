@@ -82,6 +82,17 @@ body {
 .vault-plate__name { font-weight: 600; font-size: 0.95rem; }
 .vault-plate__host { font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-text-muted); }
 
+.vault-switch { display: flex; flex-direction: column; gap: 2px; margin-top: var(--space-2); }
+.vault-switch__label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-muted); }
+.vault-switch__select {
+  font: inherit; font-size: 0.85rem;
+  background: var(--color-surface); color: var(--color-text);
+  border: 1px solid var(--color-border); border-radius: 3px;
+  padding: 0.3rem 0.4rem; width: 100%; cursor: pointer;
+}
+.vault-switch__select:focus-visible { outline: 2px solid var(--color-link); outline-offset: 1px; }
+.logout { margin: 0; }
+
 .rail__nav { flex: 1; overflow-y: auto; padding: var(--space-2) 0; }
 .nav-group__title {
   font-size: 0.65rem;
@@ -135,9 +146,6 @@ body {
   gap: var(--space-2);
   font-size: 0.85rem;
 }
-.whoami { display: flex; align-items: center; gap: 0.5rem; }
-.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--color-status-ok); flex: none; }
-.whoami__key { font-family: var(--font-mono); color: var(--color-text-muted); font-size: 0.78rem; }
 .foot-tools { display: flex; gap: var(--space-2); align-items: center; }
 .icon-btn {
   margin-left: auto;
@@ -219,6 +227,9 @@ body {
   padding: 0.2rem 0.3rem; color: var(--color-text); cursor: pointer;
 }
 .role-select:hover { border-color: var(--color-border); background: var(--color-surface); }
+.section-divider { border: 0; border-top: 1px solid var(--color-border); margin: var(--space-4) 0 var(--space-3); }
+.role-form { display: inline-flex; align-items: center; gap: 0.3rem; }
+.role-save { font-size: 0.78rem; }
 
 .addbar { display: flex; gap: var(--space-2); align-items: center; margin-top: var(--space-3); flex-wrap: wrap; }
 .addbar .field { max-width: 16rem; }
@@ -302,3 +313,8 @@ textarea.code--editor:focus-visible { outline: 2px solid var(--color-link); outl
 
 /* inline checkbox label in an addbar (vault create: server-wide admins) */
 .cap-inline { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: var(--color-text-muted); }
+
+.format-help { margin: 0 0 var(--space-3); color: var(--color-text-muted); font-size: 0.86rem; max-width: 46rem; }
+.format-help p { margin: 0 0 var(--space-2); }
+.format-help ul { margin: 0 0 var(--space-2); padding-left: 1.2rem; }
+.format-help code { font-family: var(--font-mono); font-size: 0.82em; }

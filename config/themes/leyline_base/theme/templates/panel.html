@@ -42,6 +42,13 @@
         <span class="vault-plate__name">{{.Vault}}</span>
         {{if .Host}}<span class="vault-plate__host">{{.Host}}</span>{{end}}
       </div>
+      {{if .Switcher}}<form class="vault-switch" method="get" action="{{.BasePath}}_panel" id="vaultSwitchForm">
+        <label class="vault-switch__label" for="vaultSwitch">switch vault</label>
+        <select class="vault-switch__select" name="vault" id="vaultSwitch">
+          {{range .Switcher}}<option value="{{.ID}}"{{if .Selected}} selected{{end}}>{{.ID}}</option>{{end}}
+        </select>
+        <noscript><button class="btn btn--quiet" type="submit">Go</button></noscript>
+      </form>{{end}}
     </div>
     <nav class="rail__nav" id="nav">
       {{if or .Allowed.webyaml .Allowed.webignore .Allowed.roles}}<div class="nav-group">
@@ -80,7 +87,9 @@
       </div>{{end}}
     </nav>
     <div class="rail__foot">
-      <div class="whoami"><span class="dot" title="connected"></span><span class="whoami__key">{{.MaskedKey}}</span></div>
+      <form class="logout" method="post" action="/_logout">
+        <button class="btn btn--quiet" type="submit">Log out</button>
+      </form>
       <div class="foot-tools">
         <button class="icon-btn" id="themeBtn" type="button" title="Toggle light / dark" aria-label="Toggle theme">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 12.8A8 8 0 1111.2 3a6 6 0 009.8 9.8z"/></svg>
@@ -120,6 +129,15 @@
         <h1 class="page__title">webignore</h1>
         <p class="page__desc">What the reader exposes, by section (gitignore syntax). This is the synced, web-facing gate — the client-side leylineignore is a different file and isn't managed here.</p>
       </header>
+      <div class="format-help">
+        <p>Multi-section gitignore. Bare paths default to <code>[view]</code>. Sections:</p>
+        <ul>
+          <li><code>[view]</code> — paths hidden from web exposure.</li>
+          <li><code>[history-ignore]</code> — paths served from the live filesystem, not versioned history (<code>.leyline/</code> always implied).</li>
+          <li><code>[edit-ignore]</code> — paths where the edit-mode switch is disabled.</li>
+        </ul>
+        <p>All three sections are always shown; ones you haven't used appear as commented headers.</p>
+      </div>
       {{if .WebIgnore.Err}}<p class="panel-banner panel-banner--err">{{.WebIgnore.Err}}</p>{{end}}
       <form method="post" action="{{.Action}}">
         <input type="hidden" name="section" value="webignore">
@@ -136,6 +154,10 @@
         <h1 class="page__title">Roles</h1>
         <p class="page__desc">Custom role definitions for this vault, edited as text. The built-in roles (admin/editor/reader) are fixed and not listed here.</p>
       </header>
+      <div class="format-help">
+        <p>One role per non-blank, non-<code>#</code> line: two whitespace-separated fields — <code>name&nbsp;&nbsp;cap1,cap2,…</code>. Name matches <code>^[a-z][a-z0-9_-]*$</code> and must not be a reserved or built-in name.</p>
+        <p>Capabilities are drawn from the fixed six: <code>sync.pull</code>, <code>sync.push</code>, <code>keys.manage</code>, <code>vault.admin</code>, <code>history.tag</code>, <code>history.revert</code>. Built-in roles (admin/editor/reader) are fixed and not listed here.</p>
+      </div>
       {{if .Roles.Err}}<p class="panel-banner panel-banner--err">{{.Roles.Err}}</p>{{end}}
       <form method="post" action="{{.Action}}">
         <input type="hidden" name="section" value="roles">
@@ -159,12 +181,12 @@
         {{range .Keys.Rows}}<tr>
           <td>{{.Name}}</td>
           <td>
-            <form method="post" action="{{$.Action}}" style="display:inline">
+            <form method="post" action="{{$.Action}}" class="role-form">
               <input type="hidden" name="section" value="keys">
               <input type="hidden" name="op" value="role">
               <input type="hidden" name="name" value="{{.Name}}">
               <select class="role-select" name="role">{{$cur := .Role}}{{range $.RoleOptions}}<option value="{{.}}"{{if eq . $cur}} selected{{end}}>{{.}}</option>{{end}}</select>
-              <noscript><button class="btn btn--quiet" type="submit">Set</button></noscript>
+              <button class="btn btn--quiet role-save" type="submit">Save</button>
             </form>
           </td>
           <td class="keytext">{{.Generated}}</td>
@@ -180,6 +202,8 @@
         </tr>{{end}}
         </tbody>
       </table>
+      <hr class="section-divider">
+      <div class="subhead"><h2>Mint a key</h2><p>Creates a new holder; the secret is shown once on the next screen.</p></div>
       <form method="post" action="{{.Action}}" class="addbar">
         <input type="hidden" name="section" value="keys">
         <input type="hidden" name="op" value="create">

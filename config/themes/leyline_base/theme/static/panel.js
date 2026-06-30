@@ -42,10 +42,10 @@
   var cb = document.querySelector("[data-close-drawer]");
   if (cb && app) cb.addEventListener("click", function () { app.setAttribute("data-drawer", "closed"); });
 
-  // Role-select auto-submit — replaces onchange="this.form.submit()".
+  // Vault switcher: navigate to the chosen vault on change (?vault=<id>).
   document.addEventListener("change", function (e) {
     var sel = e.target;
-    if (sel && sel.classList && sel.classList.contains("role-select") && sel.form) sel.form.submit();
+    if (sel && sel.id === "vaultSwitch" && sel.form) sel.form.submit();
   });
 
   // Confirm destructive submits (revoke / destroy) — replaces
