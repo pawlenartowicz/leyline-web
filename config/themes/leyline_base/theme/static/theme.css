@@ -304,9 +304,17 @@ body[data-right="body"] { --extra-right: calc(var(--sidebar-width) + var(--space
 }
 .sidebar .nav-children {
   padding-left: var(--nav-indent);
-  border-left: 1px solid var(--color-border);
   margin-left: calc(var(--space-1) + 1px);
   margin-top: var(--space-1);
+}
+/* The survey line. Only the branch that holds the current page carries a
+   spine, and it is oxblood — `is-open` marks that branch's ancestor dirs
+   (both compact <details> groups and long-mode <ul>s). Every other group
+   stays bare, so the rail shows one meaningful line for "your path" instead
+   of a grey rule under every section (the old picket fence). */
+.sidebar .nav-tree > .nav-item.is-open > details > .nav-children,
+.sidebar .nav-tree > .nav-item.is-open > .nav-children {
+  border-left: 2px solid var(--color-link);
 }
 .sidebar .nav-item {
   margin: var(--space-1) 0;
@@ -315,122 +323,140 @@ body[data-right="body"] { --extra-right: calc(var(--sidebar-width) + var(--space
 .sidebar .nav-item > a,
 .sidebar .nav-group-label {
   display: block;
-  padding: 0.1rem 0.25rem;
-  border-radius: 3px;
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
   overflow-wrap: anywhere;
   hyphens: auto;
   color: var(--color-text);
   transition: background-color 120ms ease, color 120ms ease;
 }
 .sidebar .nav-item > a:hover {
+  background: var(--color-code-bg);
   color: var(--color-link-hover);
 }
-/* Leaf rows take a faint surface on hover for affordance; the tracked-out
-   top-level section headers stay flat (they're labels, not destinations). */
-.sidebar .nav-children .nav-item > a:hover {
-  background: var(--color-code-bg);
-}
-.sidebar .nav-group-label {
-  opacity: 0.7;
-}
-/* Top-level items: tracked-out small caps in muted text — section
-   headers, not "first nav row". Children stay normal weight, so the
-   eye gets a clear visual stop between levels. */
+.sidebar .nav-group-label { cursor: default; }
+
+/* Top-level rows are section headers: ink (not muted), tracked caps. The
+   uppercase legend treatment stays — it suits the scriptorium palette — but
+   is no longer *smaller* than its own children, which had inverted the
+   hierarchy so the parents read as afterthoughts. */
+.sidebar .nav-tree > .nav-item { margin-top: var(--space-3); }
+.sidebar .nav-tree > .nav-item:first-child { margin-top: var(--space-1); }
 .sidebar .nav-tree > .nav-item > a,
 .sidebar .nav-tree > .nav-item > details > summary > a,
 .sidebar .nav-tree > .nav-item > .nav-group-label,
 .sidebar .nav-tree > .nav-item > details > summary > .nav-group-label {
   font-family: var(--font-ui);
   font-weight: 600;
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
+  font-size: 0.78rem;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
-  color: var(--color-text-muted);
-  margin-top: var(--space-3);
-}
-.sidebar .nav-tree > .nav-item:first-child > a,
-.sidebar .nav-tree > .nav-item:first-child > details > summary > a,
-.sidebar .nav-tree > .nav-item:first-child > .nav-group-label,
-.sidebar .nav-tree > .nav-item:first-child > details > summary > .nav-group-label {
-  margin-top: 0;
-}
-/* Active top-level item: full-strength text colour, no muting. */
-.sidebar .nav-tree > .nav-item.is-active > a,
-.sidebar .nav-tree > .nav-item.is-active > details > summary > a {
   color: var(--color-text);
 }
+
+/* Children are the quiet layer: muted grey, darkening on hover. Colour and
+   weight carry the level split now, so parents don't have to shrink to sit
+   above them. */
 .sidebar .nav-children .nav-item > a,
 .sidebar .nav-children .nav-item > details > summary > a,
 .sidebar .nav-children .nav-item > .nav-group-label,
 .sidebar .nav-children .nav-item > details > summary > .nav-group-label {
   font-weight: 400;
+  font-size: 0.9rem;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-text-muted);
 }
-.sidebar .nav-dir.is-open > details > summary > a,
-.sidebar .nav-dir.is-open > details > summary > .nav-group-label {
-  opacity: 1;
+.sidebar .nav-children .nav-item > a:hover {
+  color: var(--color-text);
 }
-.sidebar .nav-item.is-active > a,
-.sidebar .nav-item.is-active > details > summary > a,
+
+/* Active section: the header of the branch you're in gets an oxblood edge bar
+   (matching its survey line) plus the faint active wash. Covers compact dir
+   summaries, long-mode dir links, and a current top-level leaf. */
+.sidebar .nav-tree > .nav-item.is-open > details > .nav-summary,
+.sidebar .nav-tree > .nav-item.is-active > details > .nav-summary,
+.sidebar .nav-tree > .nav-item.is-open > a,
+.sidebar .nav-tree > .nav-item.is-active > a,
 .sidebar .nav-root.is-active {
   background: var(--color-active-bg);
-  color: var(--color-active-fg);
-  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--color-link);
 }
-/* Active leaf inside a group: an oxblood tick on the nav-children spine,
-   mirroring the table of contents so both rails share one "you are here"
-   vocabulary. The tick sits left of the active pill, on the 1px guide. */
+
+/* You are here: a filled oxblood benchmark dot sitting on the survey line —
+   the one thing the eye should land on. Its ring is the page background, so
+   the dot punches a clean gap in the line. The active leaf's label goes ink +
+   medium; no pill (the section bar already carries the branch). */
 .sidebar .nav-children .nav-item.is-active { position: relative; }
+.sidebar .nav-children .nav-item.is-active > a {
+  color: var(--color-text);
+  font-weight: 500;
+}
 .sidebar .nav-children .nav-item.is-active::before {
   content: "";
   position: absolute;
-  left: calc(-1 * var(--nav-indent) - 1px);
-  top: 0.15rem;
-  bottom: 0.15rem;
-  width: 2px;
+  left: calc(-1 * var(--nav-indent) - 5px);
+  top: 0.5rem;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
   background: var(--color-link);
-  border-radius: 1px;
+  box-shadow: 0 0 0 3px var(--color-bg);
 }
 
-/* Collapsible directory rows. <details>/<summary> drive the default
-   expand/collapse state from the server (open ⇔ ancestor of current
-   page); clicks toggle without JS. The chevron is the only disclosure
-   affordance — the native triangle marker is hidden. */
-.sidebar details.nav-group {
-  margin: 0;
-  padding: 0;
-}
+/* Collapsible directory rows. <details>/<summary> drive the default open state
+   from the server (open ⇔ ancestor of the current page); clicks toggle without
+   JS. The chevron is the only disclosure affordance — native marker hidden —
+   and it sits at the RIGHT edge of the row so a header reads as "a place with a
+   switch on its edge", not a triangle bullet. */
+.sidebar details.nav-group { margin: 0; padding: 0; }
 .sidebar .nav-summary {
   display: flex;
   align-items: center;
-  gap: 0.15rem;
+  gap: 0.4rem;
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
   cursor: pointer;
   list-style: none;
   user-select: none;
+  transition: background-color 120ms ease;
 }
+.sidebar .nav-summary:hover { background: var(--color-code-bg); }
 .sidebar .nav-summary::-webkit-details-marker { display: none; }
 .sidebar .nav-summary::marker { content: ""; }
-.sidebar .nav-summary::before {
-  content: "";
-  display: inline-block;
-  width: 0;
-  height: 0;
-  flex-shrink: 0;
-  border-top: 0.32em solid transparent;
-  border-bottom: 0.32em solid transparent;
-  border-left: 0.4em solid currentColor;
-  opacity: 0.55;
-  margin-right: 0.15rem;
-  transform: translateY(0.05em) rotate(0deg);
-  transform-origin: 35% 50%;
-  transition: transform 120ms ease;
-}
-.sidebar details.nav-group[open] > .nav-summary::before {
-  transform: translateY(0.05em) rotate(90deg);
-}
+/* The inner label already carries its own padding as a plain row; inside a
+   summary the summary owns the padding, so reset it to avoid double inset. */
 .sidebar .nav-summary > a,
 .sidebar .nav-summary > .nav-group-label {
   flex: 1;
   min-width: 0;
+  padding: 0;
+  background: none;
+  border-radius: 0;
+}
+/* Right-edge caret: a border-square chevron. Collapsed points left (back
+   toward the label); open rotates to point down. */
+.sidebar .nav-summary::after {
+  content: "";
+  flex-shrink: 0;
+  width: 0.4em;
+  height: 0.4em;
+  margin-right: 0.1rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  color: var(--color-text-muted);
+  opacity: 0.65;
+  transform: rotate(135deg);
+  transition: transform 160ms ease;
+}
+.sidebar details.nav-group[open] > .nav-summary::after {
+  transform: rotate(45deg);
+}
+/* Active section's caret picks up the oxblood so the whole header reads as one
+   unit. */
+.sidebar .nav-tree > .nav-item.is-open > details > .nav-summary::after {
+  color: var(--color-link);
+  opacity: 1;
 }
 
 .site-header {

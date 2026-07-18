@@ -17,37 +17,38 @@ This walkthrough follows the publish-a-site shape (sync server + web reader + CI
 
 Leyline ships as native `deb` / `rpm` / `apk` packages — **two** of them: the sync
 server (`leyline-server` + the `leyline-admin` operator tool) and the web reader
-(`leyline-web`). The current line is `0.4.*`. **Keep every piece on the same minor:**
-the server, CLI, `leyline-web`, and the `web` theme clone (step 4) must all be
-`0.4.*` — crossing a minor (`0.4` → `0.5`) carries no compatibility guarantee. The
-`0.4.1` in the URLs below tracks the release tag; bump it for a later patch.
+(`leyline-web`). **Keep every piece on the same minor:** the server, CLI,
+`leyline-web`, and the `web` theme clone (step 4) must all share one minor —
+crossing a minor (e.g. `0.5` → `0.6`) carries no compatibility guarantee. The URLs
+below pull the **latest** release; to pin a specific one, swap `latest/download`
+for `download/vX.Y.Z`.
 
-Pick your version and CPU arch once — on arm64 hosts set `arch=arm64`:
+Pick your CPU arch once — on arm64 hosts set `arch=arm64`:
 
 ```sh
-ver=0.4.1; arch=amd64
-base="https://github.com/pawlenartowicz/leyline/releases/download/v${ver}"
+arch=amd64
+base="https://github.com/pawlenartowicz/leyline/releases/latest/download"
 ```
 
 **Fedora / RHEL:**
 
 ```sh
-cd /tmp && curl -fsSL -O "${base}/leyline-server_${ver}_${arch}.rpm" -O "${base}/leyline-web_${ver}_${arch}.rpm"
-sudo dnf install ./leyline-server_${ver}_${arch}.rpm ./leyline-web_${ver}_${arch}.rpm
+cd /tmp && curl -fsSL -O "${base}/leyline-server_${arch}.rpm" -O "${base}/leyline-web_${arch}.rpm"
+sudo dnf install ./leyline-server_${arch}.rpm ./leyline-web_${arch}.rpm
 ```
 
 **Debian / Ubuntu:**
 
 ```sh
-cd /tmp && curl -fsSL -O "${base}/leyline-server_${ver}_${arch}.deb" -O "${base}/leyline-web_${ver}_${arch}.deb"
-sudo apt install ./leyline-server_${ver}_${arch}.deb ./leyline-web_${ver}_${arch}.deb
+cd /tmp && curl -fsSL -O "${base}/leyline-server_${arch}.deb" -O "${base}/leyline-web_${arch}.deb"
+sudo apt install ./leyline-server_${arch}.deb ./leyline-web_${arch}.deb
 ```
 
 **Alpine:**
 
 ```sh
-cd /tmp && curl -fsSL -O "${base}/leyline-server_${ver}_${arch}.apk" -O "${base}/leyline-web_${ver}_${arch}.apk"
-sudo apk add --allow-untrusted ./leyline-server_${ver}_${arch}.apk ./leyline-web_${ver}_${arch}.apk
+cd /tmp && curl -fsSL -O "${base}/leyline-server_${arch}.apk" -O "${base}/leyline-web_${arch}.apk"
+sudo apk add --allow-untrusted ./leyline-server_${arch}.apk ./leyline-web_${arch}.apk
 ```
 
 The server package **starts on install** — it is live on `127.0.0.1:8090` under
@@ -317,15 +318,15 @@ If you embed a browser-based sync client (not the Obsidian plugin or the leyline
 ## Manual install from tarballs
 
 For a from-source or non-systemd box, the same release also ships plain `.tar.gz`
-archives — `leyline-server_<ver>_linux_<arch>.tar.gz` (carries both `leyline-server`
-and `leyline-admin`) and `leyline-web_<ver>_linux_<arch>.tar.gz`:
+archives — `leyline-server_linux_<arch>.tar.gz` (carries both `leyline-server`
+and `leyline-admin`) and `leyline-web_linux_<arch>.tar.gz`:
 
 ```sh
-ver=0.4.1; arch=amd64
-base="https://github.com/pawlenartowicz/leyline/releases/download/v${ver}"
+arch=amd64
+base="https://github.com/pawlenartowicz/leyline/releases/latest/download"
 cd /tmp
-curl -fsSL "${base}/leyline-server_${ver}_linux_${arch}.tar.gz" | tar xz
-curl -fsSL "${base}/leyline-web_${ver}_linux_${arch}.tar.gz" | tar xz
+curl -fsSL "${base}/leyline-server_linux_${arch}.tar.gz" | tar xz
+curl -fsSL "${base}/leyline-web_linux_${arch}.tar.gz" | tar xz
 sudo install -m 0755 leyline-server leyline-admin leyline-web /usr/local/bin/
 ```
 

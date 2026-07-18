@@ -80,14 +80,14 @@ Set `LEYLINE_ACCESS_LOG=off` to suppress per-request access records (useful when
 
 ## In-place upgrade
 
-The server does not perform rolling upgrades — stop it, replace it, start it. Stay within the minor (`0.4.*`); crossing to `0.5` carries no compatibility guarantee.
+The server does not perform rolling upgrades — stop it, replace it, start it. Stay within the minor; crossing one (e.g. `0.5` → `0.6`) carries no compatibility guarantee.
 
 **Package install (recommended).** If you installed from a `.deb`/`.rpm`/`.apk`, upgrade with the package manager — it replaces both `leyline-server` and `leyline-admin` and leaves the systemd unit in place:
 
 ```sh
-VER=0.4.1            # the release you're upgrading to (stay within 0.4.*)
-cd /tmp && curl -fsSL -O "https://github.com/pawlenartowicz/leyline/releases/download/v${VER}/leyline-server_${VER}_amd64.deb"
-sudo apt install ./leyline-server_${VER}_amd64.deb         # Fedora/RHEL: dnf install ./…_amd64.rpm · Alpine: apk add --allow-untrusted ./…_amd64.apk
+# Pulls the latest release; to pin, swap latest/download for download/vX.Y.Z
+cd /tmp && curl -fsSL -O "https://github.com/pawlenartowicz/leyline/releases/latest/download/leyline-server_amd64.deb"
+sudo apt install ./leyline-server_amd64.deb         # Fedora/RHEL: dnf install ./…_amd64.rpm · Alpine: apk add --allow-untrusted ./…_amd64.apk
 sudo systemctl restart leyline-server
 journalctl -u leyline-server -f                            # watch the first 30–60s
 ```
@@ -169,15 +169,16 @@ Run `smoketest` after every upgrade and after any change to reverse-proxy config
 **Package install (recommended).** Replace `INST` with your instance name (the directory under `/opt/leyline-web/`):
 
 ```sh
-VER=0.4.1            # the release you're upgrading to (stay within 0.4.*)
 INST=mysite          # your instance — the dir under /opt/leyline-web/
 
-cd /tmp && curl -fsSL -O "https://github.com/pawlenartowicz/leyline/releases/download/v${VER}/leyline-web_${VER}_amd64.deb"
-sudo apt install ./leyline-web_${VER}_amd64.deb           # Fedora/RHEL: dnf · Alpine: apk add --allow-untrusted
+# Pulls the latest release; to pin, swap latest/download for download/vX.Y.Z
+cd /tmp && curl -fsSL -O "https://github.com/pawlenartowicz/leyline/releases/latest/download/leyline-web_amd64.deb"
+sudo apt install ./leyline-web_amd64.deb           # Fedora/RHEL: dnf · Alpine: apk add --allow-untrusted
 
-# Bring the instance's theme clone to the latest matching tag, then restart it:
+# Bring the instance's theme clone to the installed engine's minor, then restart it:
+minor=$(leyline-web --version | cut -d. -f1,2)             # e.g. 0.6
 sudo git -C "/opt/leyline-web/$INST" fetch --tags
-sudo git -C "/opt/leyline-web/$INST" checkout "$(git -C /opt/leyline-web/$INST tag -l 'v0.4.*' | sort -V | tail -1)"
+sudo git -C "/opt/leyline-web/$INST" checkout "$(git -C /opt/leyline-web/$INST tag -l "v${minor}.*" | sort -V | tail -1)"
 sudo systemctl restart "leyline-web@$INST"
 curl -sf http://127.0.0.1:8091/_health                   # expect 200
 ```
