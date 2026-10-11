@@ -76,4 +76,4 @@ To look up commit hashes to use with `revert` or `restore`, browse the vault his
 
 ## Note on web reader integration
 
-Web/tag integration (serving the vault at a named tag URL) is planned for a future release. For now, the web reader always serves the working tree.
+The web reader can serve a tag. Readers pick one in the version switcher (`versions.switcher: true` in the vault's `web.yaml`), which puts `@<tag>` in the URL. With `versions.default: latest_tag` in the vault's `web.yaml`, a bare URL opens the newest tag. The default is `head`, the working tree.

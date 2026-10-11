@@ -122,6 +122,8 @@ publish.
 - **No client-side merge.** The server is authoritative; there is no three-way merge
   on a publish.
 - **Tags are provenance only.** They mark the published commit in history; the web
-  reader ignores tags and always serves current HEAD.
+  reader serves HEAD unless the vault's `web.yaml` sets `versions.default: latest_tag`,
+  which opens the newest tag. Readers can also pick a tag in the version switcher
+  (`versions.switcher: true`).
 - **It never writes the control plane.** Configuring `.leyline/` from a repo is a
   deliberate future decision, not a default — publish leaves it untouched.
