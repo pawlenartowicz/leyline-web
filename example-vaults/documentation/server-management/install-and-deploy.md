@@ -104,21 +104,34 @@ workflow, the overwrite contract, and the publish-then-tag caveat are in
 
 ### 4. Serve it on the web
 
-`leyline-web` runs as **instances**: each is a clone of the
-[`web` template repo](https://github.com/pawlenartowicz/leyline-web) (config + themes)
-under `/opt/leyline-web/<name>`, served by the unit `leyline-web@<name>`. The web
-package creates `/opt/leyline-web/` (owned by the `leyline` user) but starts nothing.
-Create one called `mysite` and point it at the vault from step 2:
+`leyline-web` runs as **instances**: each site has its own config file,
+`/etc/leyline-web/<name>.yaml`, and is served by the unit `leyline-web@<name>`. All
+instances on the box share one clone of the
+[`web` template repo](https://github.com/pawlenartowicz/leyline-web) (the themes) at
+`/opt/leyline-web/themes`. The web package creates `/etc/leyline-web/` and
+`/opt/leyline-web/` but starts nothing. Clone the themes once, then create one
+instance called `mysite` and point it at the vault from step 2:
 
 ```sh
-sudo git clone https://github.com/pawlenartowicz/leyline-web /opt/leyline-web/mysite
-sudo git -C /opt/leyline-web/mysite checkout "$(git -C /opt/leyline-web/mysite tag -l 'v0.4.*' | sort -V | tail -1)"   # latest 0.4.* — match your installed minor
-sudo chown -R leyline:leyline /opt/leyline-web/mysite
-sudo $EDITOR /opt/leyline-web/mysite/config/config.yaml   # domain: notes.example.com
-                                                          # listen: 127.0.0.1:8091
-                                                          # vaults: { "/": /var/lib/leyline/vaults/my-notes }
+# Once per box: the shared theme clone, at the tag that matches your installed engine minor
+sudo git clone https://github.com/pawlenartowicz/leyline-web /opt/leyline-web/themes
+minor=$(leyline-web --version | cut -d. -f1,2)             # e.g. 0.8
+sudo git -C /opt/leyline-web/themes checkout "$(sudo git -C /opt/leyline-web/themes tag -l "v${minor}.*" | sort -V | tail -1)"
+
+# Per site: write the config, then enable the unit
+sudo tee /etc/leyline-web/mysite.yaml >/dev/null <<'EOF'
+domain: notes.example.com
+listen: "127.0.0.1:8091"
+default_theme: notes
+vaults:
+  "/": /var/lib/leyline/vaults/my-notes
+EOF
 sudo systemctl enable --now leyline-web@mysite
+curl -s http://127.0.0.1:8091/ | grep -o '<title>[^<]*'   # expect your site's title
 ```
+
+The clone and the config stay root-owned. The `leyline` user can read them. Vault paths
+in the config are absolute; a relative path resolves against `/etc/leyline-web`.
 
 The instance serves the vault on `127.0.0.1:8091`; `journalctl -u leyline-web@mysite -f`
 tails it. Its config fields, themes, per-user read auth, and the production form are
@@ -172,7 +185,8 @@ The two packages lay down this FHS tree (created and owned for you):
 /usr/lib/sysctl.d/99-leyline.conf                  ← inotify watch bump (§inotify below)
 /usr/lib/systemd/journald.conf.d/00-leyline-disk-cap.conf  ← journal size cap (200 MB)
 
-/opt/leyline-web/<name>/        ← per-site web instances you create (clone of the web template)
+/etc/leyline-web/               ← per-site web configs you write, one <name>.yaml per instance
+/opt/leyline-web/themes/        ← shared clone of the web template repo that you create (themes)
 ```
 
 `/var/lib/leyline` is created and owned via the server unit's `StateDirectory=leyline`;
@@ -332,7 +346,8 @@ sudo install -m 0755 leyline-server leyline-admin leyline-web /usr/local/bin/
 
 Going this route you own everything the packages do for free: create the `leyline`
 user, lay out `/var/lib/leyline/vaults` + `/etc/leyline/config.yaml` (the
-§Configuration block above), and supply the service manager. The packaging directory
+§Configuration block above), create `/etc/leyline-web/` and the theme clone at
+`/opt/leyline-web/themes` (§Serve it on the web above), and supply the service manager. The packaging directory
 in the `leyline` repo (`packaging/server/`, `packaging/web/`) is the reference — it
 holds the exact systemd units, OpenRC init scripts, sysctl, and journald drop-ins the
 packages install.

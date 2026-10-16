@@ -5,12 +5,15 @@
 # from the leyline-web root will serve the bundled example vault on
 # http://127.0.0.1:8091/.
 #
-# BEFORE DEPLOYING IN PRODUCTION
-# ------------------------------
+# A DEPLOYED SITE DOES NOT EDIT THIS FILE
+# ---------------------------------------
+# A site keeps its own config outside this repo, at
+# /etc/leyline-web/<instance>.yaml, so that this clone stays unedited and
+# a release tag can be checked out at any time. In that file:
 #   - Set dev_mode: false. Theme edits will then require a binary
 #     restart; content edits to the vault are always live.
-#   - Replace the `vaults:` map with your own vault paths (absolute or
-#     relative to this file's directory).
+#   - Give `vaults:` absolute paths (a relative path resolves against the
+#     config file's directory).
 #   - Set `domain` to your real hostname.
 #   - Bind `listen` to the interface your reverse proxy expects.
 

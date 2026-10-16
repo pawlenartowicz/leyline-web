@@ -5,13 +5,13 @@
 # This is a fork template. Forkers should:
 #   - Adjust paths (/opt/leyline-web/...) to match their layout.
 #   - Adjust command_user if they don't use a shared `leyline` user.
-#   - Confirm the config path passed via -config.
+#   - Confirm the config and themes paths passed via -config and -themes.
 
 name="leyline-web"
 description="Leyline web reader"
 
 command="/opt/leyline-web/bin/leyline-web"
-command_args="-config /opt/leyline-web/config/config.yaml"
+command_args="-config /etc/leyline-web/mysite.yaml -themes /opt/leyline-web/themes/config/themes"
 command_user="leyline:leyline"
 command_background=true
 pidfile="/run/leyline-web.pid"
@@ -24,6 +24,5 @@ depend() {
 }
 
 start_pre() {
-	checkpath -d -m 0755 -o leyline:leyline /opt/leyline-web
 	checkpath -f -m 0644 -o leyline:leyline /var/log/leyline-web.log
 }

@@ -12,17 +12,19 @@ The web reader is optional. If you don't need a public web view of vault content
 
 The `leyline-web` **engine** comes from the `leyline-web` package — installed at `/usr/bin/leyline-web` alongside `leyline-server` (see [[install-and-deploy|Install and deploy]]). The package ships a systemd template, `leyline-web@.service`, but starts nothing: each site is an opt-in **instance**.
 
-An instance is a clone of the [`web`](https://github.com/pawlenartowicz/leyline-web) template repo (themes, example config, deploy stubs) under `/opt/leyline-web/<name>`, run by the unit `leyline-web@<name>`. Match the clone to your installed engine minor:
+An instance is a config file, `/etc/leyline-web/<name>.yaml`, run by the unit `leyline-web@<name>`. All instances on the box share one clone of the [`web`](https://github.com/pawlenartowicz/leyline-web) template repo (themes, example vaults, deploy stubs) at `/opt/leyline-web/themes`. Nobody edits files in that clone. Clone it once, at the tag that matches your installed engine minor:
 
 ```sh
-sudo git clone https://github.com/pawlenartowicz/leyline-web /opt/leyline-web/mysite
-sudo git -C /opt/leyline-web/mysite checkout "$(git -C /opt/leyline-web/mysite tag -l 'v0.4.*' | sort -V | tail -1)"   # latest 0.4.* — match your engine minor
-sudo chown -R leyline:leyline /opt/leyline-web/mysite
+sudo git clone https://github.com/pawlenartowicz/leyline-web /opt/leyline-web/themes
+minor=$(leyline-web --version | cut -d. -f1,2)             # e.g. 0.8
+sudo git -C /opt/leyline-web/themes checkout "$(sudo git -C /opt/leyline-web/themes tag -l "v${minor}.*" | sort -V | tail -1)"
 ```
 
-Edit `/opt/leyline-web/mysite/config/config.yaml` (next section), then `sudo systemctl enable --now leyline-web@mysite`. To build the engine from source instead of installing the package, see §Manual install from tarballs in [[install-and-deploy|Install and deploy]].
+The clone is root-owned and must be readable by the `leyline` user; so must each config file. Write `/etc/leyline-web/mysite.yaml` (next section), then `sudo systemctl enable --now leyline-web@mysite`. Check what the site serves with `curl -s http://127.0.0.1:8091/ | grep -o '<title>[^<]*'`. The bundled example vaults are at `/opt/leyline-web/themes/example-vaults/<name>`. To build the engine from source instead of installing the package, see §Manual install from tarballs in [[install-and-deploy|Install and deploy]].
 
-## `config.yaml` walkthrough
+## Config walkthrough
+
+A site's config is `/etc/leyline-web/<name>.yaml`. A minimal one with every common key:
 
 ```yaml
 # Public hostname. Used in absolute-URL contexts (auth redirects, HSTS).
@@ -39,7 +41,7 @@ dev_mode: false
 default_theme: notes
 
 # Map URL prefix → absolute vault path.
-# Relative paths resolve against this file's directory.
+# Use absolute paths. Relative paths resolve against this file's directory, /etc/leyline-web.
 vaults:
   "/":        /var/lib/leyline/vaults/main     # root prefix
   "/archive": /var/lib/leyline/vaults/archive  # sub-prefix
@@ -68,20 +70,20 @@ Prefix matching is longest-first. A vault at `"/"` catches everything not matche
 
 ### Theme selection
 
-The `default_theme` must correspond to a directory under `<config-dir>/themes/`. Per-vault overrides live in the vault's `.leyline/vaultconfig/web.yaml` (`parent_theme:` key). See the theme cascade documentation in `web-source.md` for inheritance rules.
+The `default_theme` must correspond to a directory under `/opt/leyline-web/themes/config/themes/`. Per-vault overrides live in the vault's `.leyline/vaultconfig/web.yaml` (`parent_theme:` key). See the theme cascade documentation in `web-source.md` for inheritance rules.
 
 Theme knobs that don't require engine changes (colors, font choices, JS feature flags) go in the `custom:` block of a theme's or vault's `web.yaml`. The engine merges per-key (vault wins), and templates read the result as `.Custom`. See [[../vault-management/web-reader-setup|web reader setup]] for per-vault web.yaml fields.
 
 ## systemd unit
 
-The `leyline-web` package ships a **template** unit at `/usr/lib/systemd/system/leyline-web@.service` — you don't write it. Enable an instance by name; the `%i` token resolves to the instance directory under `/opt/leyline-web/`:
+The `leyline-web` package ships a **template** unit at `/usr/lib/systemd/system/leyline-web@.service` — you don't write it. Enable an instance by name; the name selects the config file, so `leyline-web@mysite` reads `/etc/leyline-web/mysite.yaml`:
 
 ```sh
 sudo systemctl enable --now leyline-web@mysite
 journalctl -u leyline-web@mysite -f
 ```
 
-The unit runs as the `leyline` user with `WorkingDirectory=/opt/leyline-web/mysite` and `ExecStart=/usr/bin/leyline-web -config /opt/leyline-web/mysite/config/config.yaml`, under the same hardening profile as the server (`ProtectSystem=strict`, `MemoryDenyWriteExecute`, restricted syscalls and address families). PDF and search caches go to `/var/cache/leyline-web/{pdf,search}` via `CacheDirectory=`. `leyline-web` needs no access to the sync server's socket or WAL and reads vault directories read-only — no extra `ReadWritePaths` beyond that cache. Run independent sites by cloning more instances (`leyline-web@blog`, `leyline-web@docs`, …); each gets its own directory, config, and unit.
+The unit runs as the `leyline` user with `ExecStart=/usr/bin/leyline-web -config /etc/leyline-web/mysite.yaml -themes /opt/leyline-web/themes/config/themes`, under the same hardening profile as the server (`ProtectSystem=strict`, `MemoryDenyWriteExecute`, restricted syscalls and address families). PDF and search caches go to `/var/cache/leyline-web/{pdf,search}` via `CacheDirectory=`. `leyline-web` needs no access to the sync server's socket or WAL and reads vault directories read-only — no extra `ReadWritePaths` beyond that cache. Run independent sites by adding more instances (`leyline-web@blog`, `leyline-web@docs`, …); each gets its own config file and unit and shares the theme clone.
 
 To override a directive, use a per-instance drop-in: `sudo systemctl edit leyline-web@mysite`.
 
@@ -123,13 +125,13 @@ Set the `LEYLINE_WEB_TRUST_PROXY_TLS=1` environment variable when a reverse prox
 
 The `access` file is the same file managed by the sync server — the web reader and the sync server share the same authentication store on disk. Revoking a key via `leyline-admin key remove` takes effect for the web reader after the next request (the reader re-reads the access file on change via fsnotify).
 
-**Cross-knob constraint.** If any vault declares `auth.redirect_to_login: true` in its `web.yaml` while `config.yaml` has `login_path: ""`, the server fails to start with a validation error.
+**Cross-knob constraint.** If any vault declares `auth.redirect_to_login: true` in its `web.yaml` while the site config has `login_path: ""`, the server fails to start with a validation error.
 
 For per-vault access control settings, see [[../vault-management/|vault management]].
 
 ## SIGHUP reload
 
-`SIGHUP` re-parses `config.yaml` in place. If parsing fails, the old config continues serving. Theme files in `dev_mode` are watched automatically; in production, theme changes require a reload or restart.
+`SIGHUP` re-parses the config file in place. If parsing fails, the old config continues serving. Theme files in `dev_mode` are watched automatically; in production, theme changes require a reload or restart.
 
 ## Signals
 
@@ -152,14 +154,14 @@ Without poppler, PDF requests return `501 Not Implemented`. Per-vault, you can s
 ## Checking effective webignore rules
 
 ```sh
-leyline-web rules --effective --config /opt/leyline-web/mysite/config/config.yaml
+leyline-web rules --effective -config /etc/leyline-web/mysite.yaml
 ```
 
 Prints the merged gitignore rule set per section (`view`, `history-ignore`, `edit-ignore`) for every configured vault. Useful to verify that sensitive paths are correctly hidden before making a vault public.
 
 ## Troubleshooting
 
-- **Vault shows 404 for all paths.** Check that the vault path in `config.yaml` is correct and that `leyline-web` can read the vault directory. Ensure `guest_role` is not `none` in the vault's `web.yaml` if you expect public access.
-- **Login redirects loop.** Check that `login_path` is set (non-empty) in `config.yaml` and that the vault's `.leyline/vaultconfig/web.yaml` has `auth.redirect_to_login: true` only when a login path is configured. The binary refuses to start when any vault has `redirect_to_login: true` while `login_path` is empty — so a redirect loop at runtime means the paths are mismatched between vaults.
-- **Theme not loading.** The `default_theme` value must exactly match a directory name under `<config-dir>/themes/`. Check capitalisation.
+- **Vault shows 404 for all paths.** Check that the vault path in `/etc/leyline-web/<name>.yaml` is correct and that `leyline-web` can read the vault directory. Ensure `guest_role` is not `none` in the vault's `web.yaml` if you expect public access.
+- **Login redirects loop.** Check that `login_path` is set (non-empty) in the site config and that the vault's `.leyline/vaultconfig/web.yaml` has `auth.redirect_to_login: true` only when a login path is configured. The binary refuses to start when any vault has `redirect_to_login: true` while `login_path` is empty — so a redirect loop at runtime means the paths are mismatched between vaults.
+- **Theme not loading.** The `default_theme` value must exactly match a directory name under `/opt/leyline-web/themes/config/themes/`. Check capitalisation.
 - **PDF returns 501.** `poppler-utils` is not installed or `pdftocairo` is not on `$PATH`.

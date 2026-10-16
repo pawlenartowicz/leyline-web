@@ -7,8 +7,7 @@ Wants=network-online.target
 Type=simple
 User=leyline
 Group=leyline
-WorkingDirectory=/opt/leyline-web
-ExecStart=/opt/leyline-web/bin/leyline-web -config /opt/leyline-web/config/config.yaml
+ExecStart=/opt/leyline-web/bin/leyline-web -config /etc/leyline-web/mysite.yaml -themes /opt/leyline-web/themes/config/themes
 Restart=on-failure
 RestartSec=2
 

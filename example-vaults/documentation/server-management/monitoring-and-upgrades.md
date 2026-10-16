@@ -164,33 +164,47 @@ Run `smoketest` after every upgrade and after any change to reverse-proxy config
 
 `leyline-web` upgrades follow the same stop/replace/start pattern. No WAL or vault state is held in memory between requests; the process can be stopped at any time without data loss.
 
-**Two parts must move together: the engine binary *and* every instance's theme clone.** The engine and the `web` theme template share a versioned contract — a newer engine against an older clone fails to render (e.g. a template field the old theme lacks). Keep both on the same minor: bump the binary, then check the clone out to the matching tag.
+**Two parts must move together: the engine binary *and* the shared theme clone at `/opt/leyline-web/themes`.** The engine and the `web` theme template share a versioned contract — a newer engine against older themes can fail to start when a required template is missing. Keep both on the same minor.
 
-**Package install (recommended).** Replace `INST` with your instance name (the directory under `/opt/leyline-web/`):
+**Check the themes out first, then install the packages.** The package install restarts running instances. A new engine that starts on old themes can exit with code 2. A running engine re-reads templates only on a config reload or when a vault's `web.yaml` or `webignore` changes, so keep the gap between the checkout and the install short.
+
+Site configs live in `/etc/leyline-web/<instance>.yaml`, outside the clone, so the checkout never touches them.
+
+**Package install (recommended).** Set `TAG` to the release you are installing:
 
 ```sh
-INST=mysite          # your instance — the dir under /opt/leyline-web/
+TAG=vX.Y.Z          # the release you are installing
 
-# Pulls the latest release; to pin, swap latest/download for download/vX.Y.Z
-cd /tmp && curl -fsSL -O "https://github.com/pawlenartowicz/leyline/releases/latest/download/leyline-web_amd64.deb"
+sudo git -C /opt/leyline-web/themes fetch --tags
+sudo git -C /opt/leyline-web/themes checkout "$(sudo git -C /opt/leyline-web/themes tag -l "${TAG%.*}.*" | sort -V | tail -1)"   # newest theme tag of that minor
+# If the checkout fails, stop here: do not install the new engine against old themes.
+
+cd /tmp && curl -fsSL -O "https://github.com/pawlenartowicz/leyline/releases/download/$TAG/leyline-web_amd64.deb"
 sudo apt install ./leyline-web_amd64.deb           # Fedora/RHEL: dnf · Alpine: apk add --allow-untrusted
-
-# Bring the instance's theme clone to the installed engine's minor, then restart it:
-minor=$(leyline-web --version | cut -d. -f1,2)             # e.g. 0.6
-sudo git -C "/opt/leyline-web/$INST" fetch --tags
-sudo git -C "/opt/leyline-web/$INST" checkout "$(git -C /opt/leyline-web/$INST tag -l "v${minor}.*" | sort -V | tail -1)"
-sudo systemctl restart "leyline-web@$INST"
+sudo systemctl restart 'leyline-web@*'
 curl -sf http://127.0.0.1:8091/_health                   # expect 200
+curl -s http://127.0.0.1:8091/ | grep -o '<title>[^<]*'  # expect your site's title
 ```
 
 **Source / tarball install (manual binary swap):**
 
 ```sh
-INST=myinstance
-systemctl stop "leyline-web@$INST"
+TAG=vX.Y.Z          # the release you are installing
+git -C /opt/leyline-web/themes fetch --tags
+git -C /opt/leyline-web/themes checkout "$(git -C /opt/leyline-web/themes tag -l "${TAG%.*}.*" | sort -V | tail -1)"   # newest theme tag of that minor; if this fails, stop here
 install -m 0755 leyline-web-NEW /usr/local/bin/leyline-web
-git -C "/opt/leyline-web/$INST" fetch --tags
-git -C "/opt/leyline-web/$INST" checkout "$(git -C /opt/leyline-web/$INST tag -l 'v0.4.*' | sort -V | tail -1)"
-systemctl start "leyline-web@$INST"
+systemctl restart 'leyline-web@*'
 curl -sf http://127.0.0.1:8091/_health   # expect 200
+curl -s http://127.0.0.1:8091/ | grep -o '<title>[^<]*'   # expect your site's title
 ```
+
+### Moving a 0.7 box to the shared layout
+
+A 0.7 instance keeps its config in a clone at `/opt/leyline-web/<instance>/config/config.yaml`. The packaged unit reads `/etc/leyline-web/<instance>.yaml` and has no fallback to the clone. An instance without that file fails to start, and the package install restarts running instances. So make the move before installing the new packages.
+
+1. Create the folder: `sudo install -d -m 0755 /etc/leyline-web`.
+2. For each instance, first confirm its clone is on the commit that holds the site's settings. Run `git -C /opt/leyline-web/<instance> status -sb` as the user that owns the clone, and check that the `vaults:` map in its `config/config.yaml` names the site's vault, not the example vaults. Then copy that file to `/etc/leyline-web/<instance>.yaml` and make every path under `vaults:` absolute. A mount of a bundled example vault points at `/opt/leyline-web/themes/example-vaults/<name>`.
+3. Clone the theme repo to `/opt/leyline-web/themes` and check out the newest theme tag of the new minor, as in the commands above. If an old instance is named `themes`, move its folder aside first. Copy any custom theme folder from an old clone's `config/themes/` into `/opt/leyline-web/themes/config/themes/`; an instance whose `default_theme` is missing there fails to start.
+4. Check each new file before anything restarts. `leyline-web rules --effective -config /etc/leyline-web/<instance>.yaml` prints a `# vault <prefix> -> <root>` line per mount. A relative path left in the file shows up as a root under `/etc/leyline-web/`. The engine does not refuse a vault root that does not exist: it logs `vault unpopulated; serving built-in fallback until restart` and serves a fallback page.
+5. Install the packages and restart the instances.
+6. Check what each instance serves. Then move each old `/opt/leyline-web/<instance>` clone aside, restart, and check again. Delete the old clone only after that. A unit drop-in that overrides `ExecStart` keeps reading the old clone until it is removed.

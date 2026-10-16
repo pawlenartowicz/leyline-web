@@ -66,19 +66,26 @@ fills it with your notes.
 
 ## 3. Start the web reader
 
-`leyline-web` runs as **instances**: each is a clone of the
-[`web` template repo](https://github.com/pawlenartowicz/leyline-web) (config + themes) under
-`/opt/leyline-web/<name>`, served by the unit `leyline-web@<name>`. Create one
-called `mysite` and point it at the vault from step 2:
+`leyline-web` runs as **instances**: each site has its own config file,
+`/etc/leyline-web/<name>.yaml`, and is served by the unit `leyline-web@<name>`. All
+instances share one clone of the
+[`web` template repo](https://github.com/pawlenartowicz/leyline-web) (the themes) at
+`/opt/leyline-web/themes`. Clone it once, then create an instance called `mysite`
+and point it at the vault from step 2:
 
 ```sh
-sudo git clone https://github.com/pawlenartowicz/leyline-web /opt/leyline-web/mysite
-sudo git -C /opt/leyline-web/mysite checkout "$(git -C /opt/leyline-web/mysite tag -l 'v0.4.*' | sort -V | tail -1)"   # latest 0.4.* — match your installed minor
-sudo chown -R leyline:leyline /opt/leyline-web/mysite
-sudo $EDITOR /opt/leyline-web/mysite/config/config.yaml   # domain: example.com
-                                                          # listen: 127.0.0.1:8091
-                                                          # vaults: { "/": /var/lib/leyline/vaults/my-notes }
+sudo git clone https://github.com/pawlenartowicz/leyline-web /opt/leyline-web/themes
+minor=$(leyline-web --version | cut -d. -f1,2)             # e.g. 0.8
+sudo git -C /opt/leyline-web/themes checkout "$(sudo git -C /opt/leyline-web/themes tag -l "v${minor}.*" | sort -V | tail -1)"
+sudo tee /etc/leyline-web/mysite.yaml >/dev/null <<'EOF'
+domain: example.com
+listen: "127.0.0.1:8091"
+default_theme: notes
+vaults:
+  "/": /var/lib/leyline/vaults/my-notes
+EOF
 sudo systemctl enable --now leyline-web@mysite
+curl -s http://127.0.0.1:8091/ | grep -o '<title>[^<]*'   # expect your site's title
 ```
 
 Replace `example.com` with the domain you'll point at the box. The instance serves
